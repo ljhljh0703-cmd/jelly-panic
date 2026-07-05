@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>지켜줘! 젤리 패닉 — 수읽기 퍼즐 디펜스 · AI 프로덕션 케이스스터디</title>
+<meta name="description" content="모든 위협은 예고됩니다. 소중한 것(내 사진)을 지키는 수읽기 퍼즐 디펜스 — 그리고 그 재미를 AI 에이전트 오케스트레이션으로 구현·검증·배포한 과정.">
+<meta property="og:title" content="지켜줘! 젤리 패닉 — 수읽기 퍼즐 디펜스 · AI 프로덕션 케이스스터디">
+<meta property="og:description" content="모든 위협은 예고됩니다. 소중한 것을 지키세요. 브라우저에서 바로 플레이할 수 있습니다.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://ljhljh0703-cmd.github.io/jelly-panic/portfolio.html">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0b0b0c; --ink2:#26262a; --muted:#73737b; --faint:#9a9aa1;
+  --line:#e6e5e2; --line2:#cfcec9; --paper:#fff; --paper2:#f7f6f3; --paper3:#efeee9;
+  --jelly:#FF6E9C; --jelly-soft:#ffeef4;
+  --r:14px; --maxw:1080px;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:'IBM Plex Sans KR',-apple-system,sans-serif;
+  color:var(--ink); background:var(--paper);
+  line-height:1.7; word-break:keep-all; overflow-wrap:anywhere;
+  -webkit-font-smoothing:antialiased;
+}
+a{color:inherit}
+::selection{background:var(--jelly-soft)}
+
+#bar{position:fixed;top:0;left:0;height:2px;background:var(--jelly);width:0;z-index:60}
+nav{
+  position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:18px;
+  padding:14px clamp(20px,4vw,44px);
+  background:rgba(255,255,255,.82);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line);
+}
+nav .brand{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.08em}
+nav .brand i{font-style:normal;color:var(--jelly)}
+nav .links{margin-left:auto;display:flex;gap:16px;font-size:13px;color:var(--muted)}
+nav .links a{text-decoration:none}
+nav .links a:hover{color:var(--ink)}
+nav .play{font-size:13px;font-weight:600;text-decoration:none;color:#fff;background:var(--ink);padding:7px 16px;border-radius:99px}
+nav .play:hover{background:var(--ink2)}
+@media(max-width:640px){nav .links{display:none}}
+
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 clamp(20px,4vw,44px)}
+section.block{padding:clamp(64px,9vw,110px) 0;border-top:1px solid var(--line)}
+.secno{font-family:var(--mono);font-size:clamp(44px,7vw,72px);font-weight:600;color:var(--paper3);line-height:1;user-select:none}
+h2{font-size:clamp(1.45rem,3vw,2rem);font-weight:700;letter-spacing:-.02em;line-height:1.25;margin:10px 0 14px}
+.intro{max-width:64ch;color:var(--ink2);font-size:1.02rem}
+.intro b{font-weight:600}
+.mono{font-family:var(--mono)}
+
+/* ── hero (Steam 상세 스타일) ── */
+header.hero{padding:clamp(40px,6vw,72px) 0 clamp(48px,7vw,80px)}
+.tags{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.tag{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.05em;color:var(--ink2);background:var(--paper2);border:1px solid var(--line);border-radius:99px;padding:5px 12px}
+.tag.hot{background:var(--jelly-soft);border-color:#ffd0df;color:#c2426e}
+h1{font-size:clamp(1.8rem,4.4vw,3.2rem);font-weight:700;letter-spacing:-.025em;line-height:1.18;margin:0 0 16px}
+h1 i{font-style:normal;color:var(--jelly)}
+.lead{max-width:60ch;font-size:clamp(1rem,1.6vw,1.14rem);color:var(--ink2)}
+.lead b{font-weight:600}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,420px);gap:clamp(24px,4vw,56px);align-items:start}
+@media(max-width:900px){.hero-grid{grid-template-columns:1fr}}
+.hero-meta{margin-top:16px;font-family:var(--mono);font-size:12px;color:var(--faint);display:flex;gap:14px;flex-wrap:wrap}
+.ctas{display:flex;gap:12px;margin-top:26px;flex-wrap:wrap}
+.btn{display:inline-block;text-decoration:none;font-weight:600;font-size:14.5px;padding:12px 24px;border-radius:99px;border:1px solid var(--ink);transition:transform .15s ease}
+.btn:active{transform:scale(.97)}
+.btn.solid{background:var(--ink);color:#fff}
+.btn.solid:hover{background:var(--ink2)}
+.btn.ghost:hover{background:var(--paper2)}
+
+.device{border:1px solid var(--line2);border-radius:26px;background:var(--paper2);padding:12px;box-shadow:0 24px 60px -30px rgba(20,15,25,.25);position:relative}
+.device::before{content:"LIVE · 지금 바로 플레이";position:absolute;top:-11px;left:22px;background:var(--ink);color:#fff;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;padding:4px 12px;border-radius:99px}
+.device::after{content:"";position:absolute;top:-7px;left:26px;width:7px;height:7px;border-radius:50%;background:var(--jelly);animation:blink 1.6s infinite}
+@keyframes blink{50%{opacity:.25}}
+.device iframe{display:block;width:100%;height:640px;border:0;border-radius:16px;background:#fff}
+.device .dcap{font-family:var(--mono);font-size:11px;color:var(--faint);text-align:center;padding-top:9px}
+@media(max-width:900px){.device iframe{height:560px}}
+
+/* ── 특장점 (스팀 피처) ── */
+.feat{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:34px}
+@media(max-width:820px){.feat{grid-template-columns:1fr}}
+.fcard{border:1px solid var(--line);border-radius:var(--r);padding:24px 22px;background:var(--paper);transition:transform .18s ease,box-shadow .18s ease}
+.fcard:hover{transform:translateY(-2px);box-shadow:0 16px 34px -20px rgba(20,15,25,.3)}
+.fcard .ico{font-size:26px;line-height:1}
+.fcard h3{font-size:1.06rem;font-weight:700;margin:12px 0 7px;letter-spacing:-.01em}
+.fcard p{font-size:.92rem;color:var(--ink2)}
+.fcard p b{font-weight:600}
+.fcard .sub{font-family:var(--mono);font-size:11px;color:var(--jelly);font-weight:600;letter-spacing:.1em;text-transform:uppercase;margin-top:11px}
+
+/* ── 재미 정의 3문장 ── */
+.fun3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:32px}
+@media(max-width:820px){.fun3{grid-template-columns:1fr}}
+.fun{border-top:3px solid var(--ink);padding:18px 4px 0}
+.fun .n{font-family:var(--mono);font-size:12px;color:var(--jelly);font-weight:600}
+.fun h3{font-size:1.12rem;font-weight:700;margin:7px 0 8px;letter-spacing:-.01em}
+.fun p{font-size:.92rem;color:var(--ink2)}
+
+/* 수렴 루프 타임라인 */
+.tl{margin-top:34px;border-left:2px solid var(--line2);padding-left:26px;display:grid;gap:22px}
+.tli{position:relative}
+.tli::before{content:"";position:absolute;left:-33px;top:7px;width:12px;height:12px;border-radius:50%;background:var(--paper);border:3px solid var(--jelly)}
+.tli .say{font-weight:600;font-size:.98rem}
+.tli .say q{quotes:"“" "”"}
+.tli .did{font-size:.9rem;color:var(--ink2);margin-top:4px}
+.tli .out{font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-top:5px}
+.tli .out i{font-style:normal;color:var(--jelly);font-weight:600}
+
+/* ── 번역 테이블(재미→계약) ── */
+.trans{display:grid;gap:10px;margin-top:32px}
+.trow{display:grid;grid-template-columns:minmax(0,1fr) 28px minmax(0,1.4fr);gap:14px;align-items:start;border:1px solid var(--line);border-radius:var(--r);padding:18px 20px;background:var(--paper)}
+@media(max-width:700px){.trow{grid-template-columns:1fr}.trow .ar{display:none}}
+.trow .from b{font-weight:700}
+.trow .from{font-size:.95rem}
+.trow .from .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;color:var(--jelly);font-weight:600;display:block;margin-bottom:5px;text-transform:uppercase}
+.trow .ar{font-family:var(--mono);color:var(--faint);text-align:center;padding-top:14px}
+.trow .to{font-size:.9rem;color:var(--ink2)}
+.trow .to b{font-weight:600}
+.trow .to .mono{font-size:.82rem}
+
+/* 공정성 인터랙티브 */
+.figure{border:1px solid var(--line);border-radius:var(--r);background:var(--paper2);padding:clamp(18px,3vw,30px);margin-top:26px;overflow-x:auto}
+.fcap{font-family:var(--mono);font-size:11.5px;color:var(--faint);margin-top:14px;line-height:1.6}
+.fair{display:grid;grid-template-columns:auto 1fr;gap:clamp(18px,4vw,40px);align-items:center}
+@media(max-width:700px){.fair{grid-template-columns:1fr}}
+.board{display:grid;grid-template-columns:repeat(8,26px);grid-template-rows:repeat(8,26px);gap:3px;width:max-content}
+.cell{border-radius:6px;background:#fdf8ef;border:1px solid #efe7d8;transition:background .35s ease,border-color .35s ease}
+.cell.blk{background:#ffd9e4;border-color:#f5bccd}
+.cell.b2{background:#d7f0cf;border-color:#bfe3b4}
+.cell.b3{background:#d6ebf7;border-color:#bcdcee}
+.fair.off .cell.unfair{background:#e03434;border-color:#b32020;animation:pulse 1.2s infinite}
+@keyframes pulse{50%{opacity:.55}}
+.fair-side .big{font-family:var(--mono);font-feature-settings:"tnum";font-size:clamp(1.9rem,4vw,2.6rem);font-weight:600;line-height:1.1}
+.fair-side .big.ok{color:var(--ink)}
+.fair-side .big.bad{color:#e03434}
+.fair-side p{font-size:.92rem;color:var(--ink2);margin-top:8px;max-width:44ch}
+.toggle{margin-top:16px;display:inline-flex;border:1px solid var(--ink);border-radius:99px;overflow:hidden;font-family:var(--mono);font-size:12px;font-weight:600}
+.toggle button{border:0;background:transparent;padding:9px 18px;cursor:pointer;font:inherit;color:var(--muted)}
+.toggle button.on{background:var(--ink);color:#fff}
+
+/* 검증 테이블 */
+.vtable{width:100%;border-collapse:collapse;margin-top:30px;font-size:.9rem}
+.vtable th{text-align:left;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:10px 14px;border-bottom:2px solid var(--ink)}
+.vtable td{padding:14px;border-bottom:1px solid var(--line);vertical-align:top}
+.vtable td:first-child{font-family:var(--mono);font-size:.82rem;white-space:nowrap}
+.vtable .res{font-family:var(--mono);font-feature-settings:"tnum";font-weight:600;white-space:nowrap}
+.vtable .not{color:var(--muted);font-size:.85rem}
+.tscroll{overflow-x:auto}
+.tscroll .vtable{min-width:720px}
+.gloss{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:26px}
+@media(max-width:700px){.gloss{grid-template-columns:1fr}}
+.gterm{border-left:3px solid var(--jelly);background:var(--paper2);border-radius:0 10px 10px 0;padding:12px 16px;font-size:.88rem;color:var(--ink2)}
+.gterm b{font-weight:700}
+
+/* loop */
+.loop{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:30px}
+@media(max-width:820px){.loop{grid-template-columns:repeat(2,1fr)}}
+.role{border:1px solid var(--line);border-radius:var(--r);padding:20px 18px;background:var(--paper)}
+.role.me{background:var(--ink);border-color:var(--ink)}
+.role.me .who{color:#fff}
+.role.me .what{color:#c8c8cd}
+.role .tag2{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;color:var(--jelly);font-weight:600}
+.role .who{font-weight:700;font-size:1.02rem;margin:7px 0 6px}
+.role .what{font-size:.86rem;color:var(--ink2)}
+.loopflow{margin-top:18px;font-family:var(--mono);font-size:12px;color:var(--muted);border:1px dashed var(--line2);border-radius:12px;padding:14px 18px;line-height:2}
+.loopflow i{font-style:normal;color:var(--jelly)}
+
+/* boundary + learned */
+.bound{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:30px}
+@media(max-width:700px){.bound{grid-template-columns:1fr}}
+.bcol{border-radius:var(--r);padding:24px 22px}
+.bcol.yes{background:var(--paper2);border:1px solid var(--line)}
+.bcol.no{border:1px dashed var(--line2)}
+.bcol h3{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;margin-bottom:14px}
+.bcol.yes h3{color:var(--ink)}
+.bcol.no h3{color:var(--muted)}
+.bcol ul{list-style:none}
+.bcol li{font-size:.92rem;padding:7px 0;border-bottom:1px solid var(--line);color:var(--ink2)}
+.bcol li:last-child{border-bottom:0}
+.bcol.yes li::before{content:"✓";font-family:var(--mono);color:var(--jelly);font-weight:600;margin-right:10px}
+.bcol.no li::before{content:"—";font-family:var(--mono);color:var(--faint);margin-right:10px}
+.bcol.no li{color:var(--muted)}
+.learn{margin-top:30px;display:grid;gap:10px}
+.litem{border-left:3px solid var(--line2);padding:4px 0 4px 18px}
+.litem b{font-weight:700}
+.litem p{font-size:.92rem;color:var(--ink2);margin-top:3px}
+
+.closing{background:var(--ink);color:#fff;margin-top:clamp(64px,9vw,110px)}
+.closing .wrap{padding-top:clamp(64px,9vw,100px);padding-bottom:clamp(64px,9vw,100px)}
+.closing h2{color:#fff;max-width:26ch}
+.closing p{color:#b9b9bf;max-width:58ch;margin-top:12px}
+.closing .ctas .btn{border-color:#fff;color:#fff}
+.closing .ctas .btn.solid{background:var(--jelly);border-color:var(--jelly);color:var(--ink)}
+footer{padding:26px 0 60px;font-family:var(--mono);font-size:11.5px;color:var(--faint)}
+footer .wrap{display:flex;gap:18px;flex-wrap:wrap}
+footer a{color:var(--muted);text-decoration:none}
+footer a:hover{color:var(--ink)}
+
+.js .rv{opacity:0;transform:translateY(14px);transition:opacity .6s ease,transform .6s ease}
+.js .rv.in{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){.js .rv{opacity:1;transform:none;transition:none}}
+@media print{nav,#bar,.device,.ctas,.toggle{display:none}body{color:#000}}
+</style>
+</head>
+<body>
+<div id="bar"></div>
+
+<nav>
+  <span class="brand">JELLY<i>·</i>PANIC</span>
+  <div class="links">
+    <a href="#about">게임 소개</a><a href="#fun">재미 설계</a><a href="#build">AI 구현</a><a href="#verification">검증</a><a href="#loop">프로덕션</a>
+  </div>
+  <a class="play" href="./index.html" target="_blank" rel="noopener">플레이 ↗</a>
+</nav>
+
+<!-- ═══════════ HERO — 스팀 상세 페이지 스타일 ═══════════ -->
+<header class="hero" id="top">
+  <div class="wrap">
+    <div class="hero-grid">
+      <div>
+        <div class="tags rv">
+          <span class="tag hot">수읽기 퍼즐</span><span class="tag hot">디펜스</span>
+          <span class="tag">원터치 드래그</span><span class="tag">3가지 모드</span>
+          <span class="tag">사진 개인화</span><span class="tag">오프라인 플레이</span>
+        </div>
+        <h1 class="rv">모든 위협은 예고됩니다.<br>이제, 소중한 것을 <i>지키세요</i>.</h1>
+        <p class="lead rv">
+          괴식 젤리들의 세계에 균열이 가고, 설탕이 굳고, 도둑 까마귀가 몰려옵니다.
+          다행히 <b>모든 위협은 터지기 전에 미리 보입니다</b> — 문제는 전부 막을 수 없다는 것.
+          무엇을 지키고 무엇을 포기할지, 매 손패가 선택입니다.
+          그리고 지킬 대상은 기본 캐릭터가 아니어도 됩니다. <b>내 반려동물, 내 사람의 사진</b>을 넣으세요.
+        </p>
+        <div class="hero-meta rv">
+          <span>SINGLE HTML · 116,094 B</span><span>DEPENDENCIES 0</span><span>PUBLIC DEMO</span>
+        </div>
+        <div class="ctas rv">
+          <a class="btn solid" href="./index.html" target="_blank" rel="noopener">지금 플레이 ↗</a>
+          <a class="btn ghost" href="https://github.com/ljhljh0703-cmd/jelly-panic" target="_blank" rel="noopener">코드 보기 ↗</a>
+        </div>
+      </div>
+      <div class="rv">
+        <div class="device">
+          <iframe title="지켜줘! 젤리 패닉 라이브 데모" src="./index.html" loading="eager"></iframe>
+          <div class="dcap">영상이 아니라 실제 게임입니다 — GitHub Pages 릴리스 빌드 그대로</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════════ 01 ABOUT — 게임 소개·특장점 ═══════════ -->
+<section class="block" id="about">
+  <div class="wrap">
+    <div class="secno rv">01</div>
+    <h2 class="rv">반사신경 게임이 아닙니다.<br>판을 읽는 게임입니다</h2>
+    <p class="intro rv">
+      조작은 드래그 하나. 튜토리얼 없이 10초면 이해합니다.
+      하지만 위협 예고와 카운트다운, 낙하 연쇄, 손패 세 개가 겹치는 순간부터
+      매 수가 작은 수읽기 문제가 됩니다. <b>쉬운 조작 위에 깊은 판단</b> — 이 게임의 정체성입니다.
+    </p>
+    <div class="feat">
+      <div class="fcard rv">
+        <div class="ico">🔮</div>
+        <h3>모든 위협은 예고된다</h3>
+        <p>균열·시럽·설탕·슬라임·까마귀 — 어떤 위협도 기습하지 않습니다. 어디서, 몇 턴 뒤, 무엇이 일어날지 <b>전부 보드에 공개</b>됩니다. 긴장은 랜덤이 아니라 수읽기에서 나옵니다.</p>
+        <div class="sub">Complete Information</div>
+      </div>
+      <div class="fcard rv">
+        <div class="ico">🐣</div>
+        <h3>소중한 것을 지켜라</h3>
+        <p>반려동물이든 사람이든, <b>사진을 넣으면 게임 속 '지킬 대상'이 됩니다</b>. 사진은 기기 밖으로 나가지 않습니다. 구하면 "지켰다!" 카드, 뺏기면 코딱지맛 젤리 범벅 — 어느 쪽이든 공유하고 싶어집니다.</p>
+        <div class="sub">On-Device Personalization</div>
+      </div>
+      <div class="fcard rv">
+        <div class="ico">🧩</div>
+        <h3>콤보를 '설계'하는 손맛</h3>
+        <p>줄을 지우면 위 블록이 낙하하고, 낙하가 새 줄을 만들면 연쇄가 터집니다. 드래그하는 동안 <b>낙하 결과와 연쇄까지 미리 보여주므로</b>, 콤보는 우연이 아니라 설계입니다.</p>
+        <div class="sub">Chain Preview</div>
+      </div>
+      <div class="fcard rv">
+        <div class="ico">🗑️</div>
+        <h3>버리는 것도 전략이다</h3>
+        <p>못 쓸 조각은 통에 버리고 새 조각을 받으세요. 단, <b>모든 위협이 한 턴 다가옵니다</b>. 시간을 파는 리스크-리워드 — 버릴까, 버틸까가 매번 고민됩니다.</p>
+        <div class="sub">Risk–Reward Valve</div>
+      </div>
+      <div class="fcard rv">
+        <div class="ico">🎮</div>
+        <h3>세 가지 방식으로 즐긴다</h3>
+        <p><b>클래식</b>(끝없이 최고점), <b>스테이지</b>(색 조합 파괴·구출·수 제한 점수 — 임무 10개), <b>디펜스</b>(한가운데 소중한 것, 몰려오는 까마귀 웨이브). 같은 규칙, 다른 긴장.</p>
+        <div class="sub">3 Modes</div>
+      </div>
+      <div class="fcard rv">
+        <div class="ico">💣</div>
+        <h3>아이템은 실력의 보상</h3>
+        <p>폭탄(3×3)·롤링핀(한 줄)·색 마카롱(같은 맛 전멸) — 전부 <b>연쇄와 구출로만 얻습니다</b>. 뽑기도 결제도 없습니다. 원하는 젤리 위에 직접 드롭해 조준하세요.</p>
+        <div class="sub">Skill-Earned Items</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 02 FUN — 재미를 어떻게 잡았나 ═══════════ -->
+<section class="block" id="fun">
+  <div class="wrap">
+    <div class="secno rv">02</div>
+    <h2 class="rv">재미를 세 문장으로 먼저 정의했습니다</h2>
+    <p class="intro rv">
+      "재밌는 게임 만들어줘"는 AI에게 시킬 수 없는 주문입니다.
+      그래서 시작 전에 이 게임의 재미가 무엇인지를 검증 가능한 문장으로 먼저 고정하고,
+      모든 기능 결정을 이 세 문장에 대조했습니다.
+    </p>
+    <div class="fun3">
+      <div class="fun rv">
+        <div class="n">FUN-1</div>
+        <h3>"운이 아니라 내가 잘해서 풀었다"</h3>
+        <p>숨겨진 랜덤으로 긴장을 만들지 않습니다. 완전 공개 정보에서 수읽기로 위기를 파훼할 때의 쾌감 — Into the Breach의 원리를 원터치 배치 퍼즐로 초경량화했습니다.</p>
+      </div>
+      <div class="fun rv">
+        <div class="n">FUN-2</div>
+        <h3>"어렵다"는 좋지만 "억울하다"는 금지</h3>
+        <p>실패의 원인이 항상 화면에서 읽혀야 합니다. 대응 자체가 불가능한 위협은 난이도가 아니라 설계 결함으로 규정하고, 엔진 레벨에서 생성을 차단했습니다.</p>
+      </div>
+      <div class="fun rv">
+        <div class="n">FUN-3</div>
+        <h3>매 손패가 딜레마여야 한다</h3>
+        <p>후반에는 위협이 둘씩 예고돼 전부 막을 수 없습니다. 까마귀를 잡으면 균열을 포기하는 삼중 판단, 버리기의 시간 비용 — "쫄깃함"은 선택의 무게에서 나옵니다.</p>
+      </div>
+    </div>
+
+    <h2 class="rv" style="margin-top:70px">그리고 플레이 피드백으로 조였습니다</h2>
+    <p class="intro rv">
+      정의는 가설일 뿐, 재미의 판정자는 사람입니다. 실플레이 반응 한 줄 한 줄을
+      설계 변경으로 번역하는 루프를 15세션 돌렸습니다. 실제 기록 일부입니다.
+    </p>
+    <div class="tl">
+      <div class="tli rv">
+        <div class="say"><q>중간을 부수면 아래로 내려오게. 내려오면서 콤보 가능하게.</q></div>
+        <div class="did">→ 중력 낙하 + 연쇄 콤보 시스템 신설. 결정론 유지를 위해 낙하 순서를 시드 기반으로 고정.</div>
+        <div class="out">다음 플레이 반응: <i>"중력 도입 갓패치"</i> — 코어 손맛으로 확정</div>
+      </div>
+      <div class="tli rv">
+        <div class="say"><q>블록이 없는데 설탕 위협이 떠 있는 건 불합리하게 느껴짐.</q></div>
+        <div class="did">→ 타겟 블록이 사라지는 순간 위협 예고도 즉시 소멸하도록 규칙 수정. "빈 칸 위의 예고"라는 억울함 요소 제거 (FUN-2).</div>
+        <div class="out">동일 유형 불만 재발 <i>0</i></div>
+      </div>
+      <div class="tli rv">
+        <div class="say"><q>까마귀를 못 보긴 함.</q></div>
+        <div class="did">→ 데이터로 원인 규명: 까마귀 등장 티어(40수)에 중앙값 판(18수)이 도달 못 함. 등장을 20수로 앞당기고 붉은 경보·울음·마스코트 반응 추가.</div>
+        <div class="out">체감 문제를 <i>시뮬레이션 데이터</i>로 진단한 사례</div>
+      </div>
+      <div class="tli rv">
+        <div class="say"><q>위협에 대응할 선택지가 더 필요함. 쫄깃한 맛이 없음.</q></div>
+        <div class="did">→ 버리기 통(위협 1턴 전진 비용) + 후반 더블 스폰(선택 강제) 도입 (FUN-3).</div>
+        <div class="out">다음 플레이 판정: <i>"쫄깃임"</i></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 03 BUILD — 재미를 AI로 어떻게 구현했나 ═══════════ -->
+<section class="block" id="build">
+  <div class="wrap">
+    <div class="secno rv">03</div>
+    <h2 class="rv">재미 문장을 코드가 검증할 수 있는<br>계약으로 번역했습니다</h2>
+    <p class="intro rv">
+      AI 에이전트에게 일을 시키는 핵심은 <b>취향을 명세로 바꾸는 것</b>이었습니다.
+      "억울하지 않게"는 시킬 수 없지만 "대응 불가능한 위협 생성률 0%를 시뮬레이션으로 실측하라"는 시킬 수 있습니다.
+      세 문장이 각각 어떤 기술 계약이 됐는지입니다.
+    </p>
+    <div class="trans">
+      <div class="trow rv">
+        <div class="from"><span class="k">FUN-1 · 수읽기</span><b>예측이 실제와 달라선 안 된다</b> — 미리보기가 틀리는 순간 수읽기 게임은 죽는다</div>
+        <div class="ar">→</div>
+        <div class="to">드래그 미리보기가 별도 근사 로직이 아니라 <b>실행 엔진(resolveAction)을 복제 보드에서 그대로 실행</b>합니다. 예측≠실제 버그가 구조적으로 불가능하고, "이 수를 두면 지킬 대상을 잃는다"는 경고까지 배치 전에 계산됩니다. 낙하·연쇄·해체 전부 시드 기반 결정론이라 브라우저와 테스트가 같은 코어를 공유합니다.</div>
+      </div>
+      <div class="trow rv">
+        <div class="from"><span class="k">FUN-2 · 공정성</span><b>대응 불가능한 위협은 생성 금지</b> — 주석이 아니라 게이트로</div>
+        <div class="ar">→</div>
+        <div class="to">위협 생성 시 <b>"현재 손패로 그 칸을 덮을 수 있는가"를 엔진이 선검증</b>하고, 몬테카를로 200판 자동 플레이로 회피 불가 스폰 0.00%를 릴리스 조건으로 실측합니다. 이 게이트는 이후 기능 추가가 만든 순서 결함(스폰 뒤 보드 변동)까지 잡아냈습니다 — 아래에서 직접 꺼보세요.</div>
+      </div>
+      <div class="trow rv">
+        <div class="from"><span class="k">FUN-3 · 딜레마</span><b>압박은 키우되 규칙은 투명하게</b> — 몰래 보정 금지</div>
+        <div class="ar">→</div>
+        <div class="to">성과 감시형 난이도 보정 대신 <b>진행도 기반 고정 커브를 화면에 상시 노출</b>(티어 표시)합니다. 후반 더블 스폰·버리기의 시간 비용·아이템의 실력 보상화(뽑기 0)까지, 모든 압박 장치는 플레이어가 규칙을 읽을 수 있는 형태로만 설계했습니다.</div>
+      </div>
+    </div>
+
+    <div class="figure rv">
+      <div class="fair off" id="fair">
+        <div class="board" id="fboard" aria-hidden="true"></div>
+        <div class="fair-side">
+          <div class="big bad" id="fnum">19.1%</div>
+          <p id="ftext">검증 룰이 없다면 — 위협 후보 칸의 19.1%는 현재 손패로 덮을 수 없는 자리였습니다. 열 판에 한두 번은 "막을 수 없는 위협"을 만난다는 뜻입니다.</p>
+          <div class="toggle" role="group" aria-label="공정성 룰 토글">
+            <button id="toff" class="on" type="button">룰 OFF</button>
+            <button id="ton" type="button">룰 ON (릴리스)</button>
+          </div>
+        </div>
+      </div>
+      <div class="fcap">개념도 — 붉은 칸 = 덮을 수 없는 위협 후보. 비율은 counterfactual 실측(19.1%)을 반영한 예시 배치이며, 룰 ON의 0.00%는 몬테카를로 200판으로 별도 실측했습니다.</div>
+    </div>
+
+    <p class="intro rv" style="margin-top:44px">
+      에이전트 운용도 같은 원리였습니다. 매 세션 <b>디스패치 문서에 목표·범위·금지 목록·완료 기준을 계약으로 명시</b>하고,
+      모호한 설계 판단(연쇄 중 타이머 진행 여부, 아이템 획득 경로 등)은 에이전트가 임의로 정하지 않고 멈춰서 묻게 했습니다.
+      구현은 실패하는 테스트를 먼저 쓰고 통과시키는 순서로만 진행했고,
+      착취형 수익화·강제 광고 같은 항목은 "수익이 되더라도 금지"로 계약에 박아 스코프를 지켰습니다.
+    </p>
+  </div>
+</section>
+
+<!-- ═══════════ 04 VERIFICATION ═══════════ -->
+<section class="block" id="verification">
+  <div class="wrap">
+    <div class="secno rv">04</div>
+    <h2 class="rv">주장하는 만큼만, 측정한 만큼만</h2>
+    <p class="intro rv">각 검증이 <b>무엇을 증명하고 무엇을 증명하지 않는지</b>를 함께 적습니다. 경계를 정확히 긋는 것이 엔지니어링 신뢰라고 생각합니다.</p>
+    <div class="tscroll rv">
+      <table class="vtable">
+        <tr><th>명령</th><th>결과</th><th>증명하는 것</th><th>증명하지 않는 것</th></tr>
+        <tr><td>node test/test.js</td><td class="res">90 passed / 0 failed</td><td>결정론(같은 시드 = 같은 결과)과 낙하·연쇄·위협·아이템·모드 규칙의 명세 일치</td><td class="not">화면 렌더 품질, 조작감</td></tr>
+        <tr><td>node test/smoke.js</td><td class="res">16 passed / 0 failed</td><td>DOM 스텁 환경에서 초기화·렌더 루프·드래그 시퀀스가 예외 없이 동작</td><td class="not">실기기 픽셀·터치 지연 (스텁 ≠ 실화면)</td></tr>
+        <tr><td>node test/sim.js 200</td><td class="res">회피 불가 스폰 0.00%</td><td>공정성 게이트 통과 — 대응 불가능한 위협이 생성되지 않음</td><td class="not">재미·밸런스 체감 (릴리스 게이트이지 과학적 벤치마크가 아님)</td></tr>
+        <tr><td>counterfactual</td><td class="res">19.1% uncoverable</td><td>검증 룰 부재 시 위협 후보의 19.1%가 대응 불가 — 룰의 존재 가치 실측</td><td class="not">타 게임과의 비교 우위</td></tr>
+        <tr><td>deploy gate</td><td class="res">live 200 · SHA 일치 · 스캔 0</td><td>배포본 = 검증본(해시 일치), 사설 경로·이메일·디버그 훅 누출 0</td><td class="not">가용성 SLA, 트래픽 처리 능력</td></tr>
+      </table>
+    </div>
+    <div class="gloss">
+      <div class="gterm rv"><b>결정론(deterministic)</b> — 같은 시드(난수 출발값)면 항상 같은 판이 나오는 성질. 버그 재현과 자동 검증의 전제 조건입니다.</div>
+      <div class="gterm rv"><b>DOM 스모크 테스트</b> — 화면 요소를 흉내 낸 가짜 환경에서 "일단 켜지고 기본 동작이 도는지" 빠르게 확인하는 테스트입니다.</div>
+      <div class="gterm rv"><b>몬테카를로 시뮬레이션</b> — 무작위 플레이를 수백 판 자동으로 돌려 통계로 규칙을 검증하는 방법입니다.</div>
+      <div class="gterm rv"><b>counterfactual(반사실 측정)</b> — "이 룰이 없었다면 어땠을까"를 같은 조건에서 측정해 룰의 가치를 증명하는 방법입니다.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 05 PRODUCTION LOOP ═══════════ -->
+<section class="block" id="loop">
+  <div class="wrap">
+    <div class="secno rv">05</div>
+    <h2 class="rv">에이전트는 셋, 판단의 주인은 하나</h2>
+    <p class="intro rv">이 프로젝트의 산출물은 게임만이 아니라 <b>게임을 만든 생산 체계</b>입니다. 방향과 취향 판단은 전부 사람이 내리고, 에이전트는 계약된 범위에서만 움직입니다.</p>
+    <div class="loop">
+      <div class="role me rv"><div class="tag2">DIRECTION</div><div class="who">사용자 (나)</div><div class="what">컨셉·재미 판정·플레이 피드백·모든 최종 결정. "쫄깃한가"는 사람만 안다</div></div>
+      <div class="role rv"><div class="tag2">BUILD</div><div class="who">Fable</div><div class="what">설계·구현 슬라이스. 실패 테스트 먼저, 모호하면 멈춰서 질문</div></div>
+      <div class="role rv"><div class="tag2">VERIFY·SHIP</div><div class="who">Codex</div><div class="what">독립 재검증·배포·누출 스캔. 빌더의 자가 검증을 신뢰하지 않는 별도 게이트</div></div>
+      <div class="role rv"><div class="tag2">CONTEXT·GATE</div><div class="who">vault Claude</div><div class="what">지식 베이스·산출물 승인 게이트. 세션이 바뀌어도 맥락이 유지되는 이유</div></div>
+    </div>
+    <div class="loopflow rv">플레이 피드백 <i>→</i> 디스패치(범위·금지 명시) <i>→</i> 실패 테스트 먼저 <i>→</i> 구현 <i>→</i> 시뮬 실측 <i>→</i> RETURN 보고 <i>→</i> 게이트 승인 <i>→</i> 다음 루프 · 이 사이클 15회로 완성</div>
+  </div>
+</section>
+
+<!-- ═══════════ 06 BOUNDARY + LEARNED ═══════════ -->
+<section class="block" id="boundary">
+  <div class="wrap">
+    <div class="secno rv">06</div>
+    <h2 class="rv">검증된 것, 아직 주장하지 않는 것,<br>그리고 배운 것</h2>
+    <div class="bound">
+      <div class="bcol yes rv">
+        <h3>검증됨</h3>
+        <ul>
+          <li>결정론 로직 90개 테스트 전건 통과</li>
+          <li>공정성: 회피 불가 스폰 0.00% (200판 실측)</li>
+          <li>배포본 = 검증본 (SHA-256 일치)</li>
+          <li>사설 정보·디버그 훅 누출 0</li>
+          <li>의존성 0 · 단일 파일 · 공개 플레이 가능</li>
+        </ul>
+      </div>
+      <div class="bcol no rv">
+        <h3>아직 주장하지 않음</h3>
+        <ul>
+          <li>재미 — 자동 테스트로 증명 불가, 플레이테스트 영역</li>
+          <li>유저 지표 — 공개 배포했지만 운영 데이터 없음</li>
+          <li>스토어·플랫폼 출시 — public playable demo까지가 사실</li>
+          <li>수익화 — 설계 원칙만 존재, 구현·검증 전</li>
+        </ul>
+      </div>
+    </div>
+    <div class="learn">
+      <div class="litem rv"><b>스텁 통과는 실화면 증명이 아닙니다.</b><p>가짜 DOM에서 전건 통과한 코드가 실제 브라우저의 네이티브 타입 차이로 첫 화면부터 죽은 적이 있습니다. 실패 모드를 스텁에 역이식해 회귀 테스트로 만들고, 실화면 확인을 별도 게이트로 분리했습니다.</p></div>
+      <div class="litem rv"><b>게이트는 설계도 지킵니다.</b><p>공정성 시뮬레이션은 룰을 증명하려고 만들었지만, 나중에 기능 추가가 만든 순서 결함을 잡아낸 것도 같은 게이트였습니다. 테스트는 회귀 방지를 넘어 설계 불변식의 감시자였습니다.</p></div>
+      <div class="litem rv"><b>메타데이터도 릴리스 대상입니다.</b><p>커밋 서명의 개인정보, 번들에 남은 디버그 훅도 공개됩니다. 누출 스캔을 배포 게이트에 넣고, 디버그 코드는 빌드가 마커 기준으로 자동 제거하게 바꿨습니다.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ CLOSING ═══════════ -->
+<div class="closing">
+  <div class="wrap">
+    <h2 class="rv">재미는 사람이 판정하고,<br>구현은 계약으로 검증했습니다</h2>
+    <p class="rv">이 페이지의 모든 수치는 공개 저장소에서 같은 명령으로 재현할 수 있고, 게임은 지금 이 브라우저에서 돌아갑니다.</p>
+    <div class="ctas rv">
+      <a class="btn solid" href="./index.html" target="_blank" rel="noopener">플레이 ↗</a>
+      <a class="btn" href="https://github.com/ljhljh0703-cmd/jelly-panic" target="_blank" rel="noopener">GitHub ↗</a>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    <span>지켜줘! 젤리 패닉 — puzzle defense · AI production case study</span>
+    <a href="https://ljhljh0703-cmd.github.io/jelly-panic/" target="_blank" rel="noopener">live demo</a>
+    <a href="https://github.com/ljhljh0703-cmd/jelly-panic" target="_blank" rel="noopener">repo</a>
+  </div>
+</footer>
+
+<script>
+(function(){
+  document.documentElement.classList.add('js');
+  var bar=document.getElementById('bar');
+  addEventListener('scroll',function(){
+    var h=document.documentElement;
+    bar.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';
+  },{passive:true});
+  if('IntersectionObserver' in window){
+    var io=new IntersectionObserver(function(es){
+      es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} });
+    },{threshold:.12});
+    document.querySelectorAll('.rv').forEach(function(el){ io.observe(el); });
+  } else {
+    document.querySelectorAll('.rv').forEach(function(el){ el.classList.add('in'); });
+  }
+  var board=document.getElementById('fboard');
+  var blocks=[3,4,11,12,19,44,45,52,53,60,61,38,30,22,14,6,25,26,33,34];
+  var unfair=[0,7,8,15,21,28,36,42,49,56,57,63];
+  for(var i=0;i<64;i++){
+    var c=document.createElement('div');
+    c.className='cell';
+    if(blocks.indexOf(i)>-1) c.className+=' '+(i%3===0?'blk':i%3===1?'b2':'b3');
+    if(unfair.indexOf(i)>-1) c.className+=' unfair';
+    board.appendChild(c);
+  }
+  var fair=document.getElementById('fair'), fnum=document.getElementById('fnum'), ftext=document.getElementById('ftext');
+  var toff=document.getElementById('toff'), ton=document.getElementById('ton');
+  function setRule(on){
+    fair.classList.toggle('off',!on);
+    toff.classList.toggle('on',!on);
+    ton.classList.toggle('on',on);
+    if(on){
+      fnum.textContent='0.00%'; fnum.className='big ok';
+      ftext.textContent='릴리스 룰 — 위협은 현재 손패로 덮을 수 있는 칸에만 생성됩니다. 몬테카를로 200판 자동 플레이에서 회피 불가능한 스폰 0건을 실측했습니다.';
+    } else {
+      fnum.textContent='19.1%'; fnum.className='big bad';
+      ftext.textContent='검증 룰이 없다면 — 위협 후보 칸의 19.1%는 현재 손패로 덮을 수 없는 자리였습니다. 열 판에 한두 번은 "막을 수 없는 위협"을 만난다는 뜻입니다.';
+    }
+  }
+  toff.addEventListener('click',function(){setRule(false)});
+  ton.addEventListener('click',function(){setRule(true)});
+})();
+</script>
+</body>
+</html>
