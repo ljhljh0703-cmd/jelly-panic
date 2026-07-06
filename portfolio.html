@@ -109,7 +109,7 @@ h1 i{font-style:normal;color:var(--jelly)}
 .tli .out{font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-top:5px}
 .tli .out i{font-style:normal;color:var(--jelly);font-weight:600}
 
-/* ── 번역 테이블(재미→계약) ── */
+/* ── 재미→구현 로직 테이블 ── */
 .trans{display:grid;gap:10px;margin-top:32px}
 .trow{display:grid;grid-template-columns:minmax(0,1fr) 28px minmax(0,1.4fr);gap:14px;align-items:start;border:1px solid var(--line);border-radius:var(--r);padding:18px 20px;background:var(--paper)}
 @media(max-width:700px){.trow{grid-template-columns:1fr}.trow .ar{display:none}}
@@ -308,9 +308,9 @@ footer a:hover{color:var(--ink)}
     <div class="secno rv">02</div>
     <h2 class="rv">재미를 세 문장으로 먼저 정의했습니다</h2>
     <p class="intro rv">
-      "재밌는 게임 만들어줘"는 AI에게 시킬 수 없는 주문입니다.
-      그래서 시작 전에 이 게임의 재미가 무엇인지를 검증 가능한 문장으로 먼저 고정하고,
-      모든 기능 결정을 이 세 문장에 대조했습니다.
+      "재밌는 게임 만들어줘"는 AI에게 시킬 수 없는 요청입니다.
+      그래서 개발을 시작하기 전에 이 게임의 재미가 무엇인지를 문장으로 먼저 고정하고,
+      이후 모든 기능 결정을 이 세 문장에 비추어 판단했습니다.
     </p>
     <div class="fun3">
       <div class="fun rv">
@@ -330,10 +330,10 @@ footer a:hover{color:var(--ink)}
       </div>
     </div>
 
-    <h2 class="rv" style="margin-top:70px">그리고 플레이 피드백으로 조였습니다</h2>
+    <h2 class="rv" style="margin-top:70px">그리고 플레이 피드백으로 다듬었습니다</h2>
     <p class="intro rv">
-      정의는 가설일 뿐, 재미의 판정자는 사람입니다. 실플레이 반응 한 줄 한 줄을
-      설계 변경으로 번역하는 루프를 15세션 돌렸습니다. 실제 기록 일부입니다.
+      정의는 가설일 뿐, 재미의 판정자는 사람입니다. 실제 플레이에서 나온 반응 한 줄 한 줄을
+      설계 변경으로 옮기는 과정을 15세션 반복했습니다. 실제 기록 일부입니다.
     </p>
     <div class="tl">
       <div class="tli rv">
@@ -364,11 +364,11 @@ footer a:hover{color:var(--ink)}
 <section class="block" id="build">
   <div class="wrap">
     <div class="secno rv">03</div>
-    <h2 class="rv">재미 문장을 코드가 검증할 수 있는<br>계약으로 번역했습니다</h2>
+    <h2 class="rv">재미 요소를 AI가 검증하고<br>구현할 수 있는 로직으로 설계했습니다</h2>
     <p class="intro rv">
-      AI 에이전트에게 일을 시키는 핵심은 <b>취향을 명세로 바꾸는 것</b>이었습니다.
-      "억울하지 않게"는 시킬 수 없지만 "대응 불가능한 위협 생성률 0%를 시뮬레이션으로 실측하라"는 시킬 수 있습니다.
-      세 문장이 각각 어떤 기술 계약이 됐는지입니다.
+      AI 에이전트에게 일을 시키는 핵심은 <b>감각을 측정 가능한 조건으로 바꾸는 것</b>이었습니다.
+      "억울하지 않게"는 시킬 수 없지만, "대응 불가능한 위협 생성률 0%를 시뮬레이션으로 실측하라"는 시킬 수 있습니다.
+      세 가지 재미 요소가 각각 어떤 구현·검증 로직이 됐는지 정리했습니다.
     </p>
     <div class="trans">
       <div class="trow rv">
@@ -377,9 +377,9 @@ footer a:hover{color:var(--ink)}
         <div class="to">드래그 미리보기가 별도 근사 로직이 아니라 <b>실행 엔진(resolveAction)을 복제 보드에서 그대로 실행</b>합니다. 예측≠실제 버그가 구조적으로 불가능하고, "이 수를 두면 지킬 대상을 잃는다"는 경고까지 배치 전에 계산됩니다. 낙하·연쇄·해체 전부 시드 기반 결정론이라 브라우저와 테스트가 같은 코어를 공유합니다.</div>
       </div>
       <div class="trow rv">
-        <div class="from"><span class="k">FUN-2 · 공정성</span><b>대응 불가능한 위협은 생성 금지</b> — 주석이 아니라 게이트로</div>
+        <div class="from"><span class="k">FUN-2 · 공정성</span><b>대응 불가능한 위협은 생성 금지</b> — 권고가 아니라 배포 조건으로</div>
         <div class="ar">→</div>
-        <div class="to">위협 생성 시 <b>"현재 손패로 그 칸을 덮을 수 있는가"를 엔진이 선검증</b>하고, 몬테카를로 200판 자동 플레이로 회피 불가 스폰 0.00%를 릴리스 조건으로 실측합니다. 이 게이트는 이후 기능 추가가 만든 순서 결함(스폰 뒤 보드 변동)까지 잡아냈습니다 — 아래에서 직접 꺼보세요.</div>
+        <div class="to">위협을 생성하는 순간 <b>"현재 손패로 그 칸을 덮을 수 있는가"를 엔진이 먼저 검증</b>하고, 몬테카를로 200판 자동 플레이에서 회피 불가 스폰 0.00%가 나와야만 배포합니다. 이 검증은 이후 기능 추가가 만든 순서 결함(스폰 뒤 보드 변동)까지 잡아냈습니다 — 아래에서 직접 꺼보세요.</div>
       </div>
       <div class="trow rv">
         <div class="from"><span class="k">FUN-3 · 딜레마</span><b>압박은 키우되 규칙은 투명하게</b> — 몰래 보정 금지</div>
@@ -404,10 +404,10 @@ footer a:hover{color:var(--ink)}
     </div>
 
     <p class="intro rv" style="margin-top:44px">
-      에이전트 운용도 같은 원리였습니다. 매 세션 <b>디스패치 문서에 목표·범위·금지 목록·완료 기준을 계약으로 명시</b>하고,
+      에이전트 운용도 같은 원리였습니다. 매 세션 <b>작업 지시서에 목표·범위·금지 목록·완료 기준을 명시</b>하고,
       모호한 설계 판단(연쇄 중 타이머 진행 여부, 아이템 획득 경로 등)은 에이전트가 임의로 정하지 않고 멈춰서 묻게 했습니다.
       구현은 실패하는 테스트를 먼저 쓰고 통과시키는 순서로만 진행했고,
-      착취형 수익화·강제 광고 같은 항목은 "수익이 되더라도 금지"로 계약에 박아 스코프를 지켰습니다.
+      착취형 수익화·강제 광고는 "수익이 되더라도 하지 않는다"고 지시서에 명시해 범위를 지켰습니다.
     </p>
   </div>
 </section>
@@ -423,7 +423,7 @@ footer a:hover{color:var(--ink)}
         <tr><th>명령</th><th>결과</th><th>증명하는 것</th><th>증명하지 않는 것</th></tr>
         <tr><td>node test/test.js</td><td class="res">90 passed / 0 failed</td><td>결정론(같은 시드 = 같은 결과)과 낙하·연쇄·위협·아이템·모드 규칙의 명세 일치</td><td class="not">화면 렌더 품질, 조작감</td></tr>
         <tr><td>node test/smoke.js</td><td class="res">16 passed / 0 failed</td><td>DOM 스텁 환경에서 초기화·렌더 루프·드래그 시퀀스가 예외 없이 동작</td><td class="not">실기기 픽셀·터치 지연 (스텁 ≠ 실화면)</td></tr>
-        <tr><td>node test/sim.js 200</td><td class="res">회피 불가 스폰 0.00%</td><td>공정성 게이트 통과 — 대응 불가능한 위협이 생성되지 않음</td><td class="not">재미·밸런스 체감 (릴리스 게이트이지 과학적 벤치마크가 아님)</td></tr>
+        <tr><td>node test/sim.js 200</td><td class="res">회피 불가 스폰 0.00%</td><td>공정성 배포 조건 충족 — 대응 불가능한 위협이 생성되지 않음</td><td class="not">재미·밸런스 체감 (배포 조건이지 과학적 벤치마크가 아님)</td></tr>
         <tr><td>counterfactual</td><td class="res">19.1% uncoverable</td><td>검증 룰 부재 시 위협 후보의 19.1%가 대응 불가 — 룰의 존재 가치 실측</td><td class="not">타 게임과의 비교 우위</td></tr>
         <tr><td>deploy gate</td><td class="res">live 200 · SHA 일치 · 스캔 0</td><td>배포본 = 검증본(해시 일치), 사설 경로·이메일·디버그 훅 누출 0</td><td class="not">가용성 SLA, 트래픽 처리 능력</td></tr>
       </table>
@@ -442,14 +442,14 @@ footer a:hover{color:var(--ink)}
   <div class="wrap">
     <div class="secno rv">05</div>
     <h2 class="rv">에이전트는 셋, 판단의 주인은 하나</h2>
-    <p class="intro rv">이 프로젝트의 산출물은 게임만이 아니라 <b>게임을 만든 생산 체계</b>입니다. 방향과 취향 판단은 전부 사람이 내리고, 에이전트는 계약된 범위에서만 움직입니다.</p>
+    <p class="intro rv">이 프로젝트의 산출물은 게임만이 아니라 <b>게임을 만든 생산 체계</b>입니다. 방향과 취향 판단은 전부 사람이 내리고, 에이전트는 지시서에 명시된 범위 안에서만 움직입니다.</p>
     <div class="loop">
       <div class="role me rv"><div class="tag2">DIRECTION</div><div class="who">사용자 (나)</div><div class="what">컨셉·재미 판정·플레이 피드백·모든 최종 결정. "쫄깃한가"는 사람만 안다</div></div>
       <div class="role rv"><div class="tag2">BUILD</div><div class="who">Fable</div><div class="what">설계·구현 슬라이스. 실패 테스트 먼저, 모호하면 멈춰서 질문</div></div>
-      <div class="role rv"><div class="tag2">VERIFY·SHIP</div><div class="who">Codex</div><div class="what">독립 재검증·배포·누출 스캔. 빌더의 자가 검증을 신뢰하지 않는 별도 게이트</div></div>
-      <div class="role rv"><div class="tag2">CONTEXT·GATE</div><div class="who">vault Claude</div><div class="what">지식 베이스·산출물 승인 게이트. 세션이 바뀌어도 맥락이 유지되는 이유</div></div>
+      <div class="role rv"><div class="tag2">VERIFY·SHIP</div><div class="who">Codex</div><div class="what">독립 재검증·배포·누출 스캔. 구현자의 자가 검증을 그대로 믿지 않는 별도 검증자</div></div>
+      <div class="role rv"><div class="tag2">CONTEXT·GATE</div><div class="who">vault Claude</div><div class="what">지식 베이스 관리와 산출물 최종 승인. 세션이 바뀌어도 맥락이 유지되는 이유</div></div>
     </div>
-    <div class="loopflow rv">플레이 피드백 <i>→</i> 디스패치(범위·금지 명시) <i>→</i> 실패 테스트 먼저 <i>→</i> 구현 <i>→</i> 시뮬 실측 <i>→</i> RETURN 보고 <i>→</i> 게이트 승인 <i>→</i> 다음 루프 · 이 사이클 15회로 완성</div>
+    <div class="loopflow rv">플레이 피드백 <i>→</i> 작업 지시서(범위·금지 명시) <i>→</i> 실패 테스트 먼저 <i>→</i> 구현 <i>→</i> 시뮬레이션 실측 <i>→</i> 결과 보고 <i>→</i> 승인 <i>→</i> 다음 루프 · 이 사이클을 15회 반복해 완성</div>
   </div>
 </section>
 
@@ -480,9 +480,9 @@ footer a:hover{color:var(--ink)}
       </div>
     </div>
     <div class="learn">
-      <div class="litem rv"><b>스텁 통과는 실화면 증명이 아닙니다.</b><p>가짜 DOM에서 전건 통과한 코드가 실제 브라우저의 네이티브 타입 차이로 첫 화면부터 죽은 적이 있습니다. 실패 모드를 스텁에 역이식해 회귀 테스트로 만들고, 실화면 확인을 별도 게이트로 분리했습니다.</p></div>
-      <div class="litem rv"><b>게이트는 설계도 지킵니다.</b><p>공정성 시뮬레이션은 룰을 증명하려고 만들었지만, 나중에 기능 추가가 만든 순서 결함을 잡아낸 것도 같은 게이트였습니다. 테스트는 회귀 방지를 넘어 설계 불변식의 감시자였습니다.</p></div>
-      <div class="litem rv"><b>메타데이터도 릴리스 대상입니다.</b><p>커밋 서명의 개인정보, 번들에 남은 디버그 훅도 공개됩니다. 누출 스캔을 배포 게이트에 넣고, 디버그 코드는 빌드가 마커 기준으로 자동 제거하게 바꿨습니다.</p></div>
+      <div class="litem rv"><b>스텁 통과는 실화면 증명이 아닙니다.</b><p>가짜 DOM에서 전건 통과한 코드가 실제 브라우저의 네이티브 타입 차이로 첫 화면부터 죽은 적이 있습니다. 그 실패 모드를 스텁에 옮겨 회귀 테스트로 만들고, 실화면 확인을 별도 검증 단계로 분리했습니다.</p></div>
+      <div class="litem rv"><b>검증은 설계도 지킵니다.</b><p>공정성 시뮬레이션은 규칙을 증명하려고 만들었지만, 나중에 기능 추가가 만든 순서 결함을 잡아낸 것도 같은 시뮬레이션이었습니다. 테스트는 회귀 방지를 넘어 설계 원칙의 감시자였습니다.</p></div>
+      <div class="litem rv"><b>메타데이터도 배포 대상입니다.</b><p>커밋 서명의 개인정보, 번들에 남은 디버그 코드도 함께 공개됩니다. 누출 검사를 배포 조건에 넣고, 디버그 코드는 빌드가 표시 구간 기준으로 자동 제거하게 바꿨습니다.</p></div>
     </div>
   </div>
 </section>
@@ -490,7 +490,7 @@ footer a:hover{color:var(--ink)}
 <!-- ═══════════ CLOSING ═══════════ -->
 <div class="closing">
   <div class="wrap">
-    <h2 class="rv">재미는 사람이 판정하고,<br>구현은 계약으로 검증했습니다</h2>
+    <h2 class="rv">재미는 사람이 판정하고,<br>구현은 데이터로 검증했습니다</h2>
     <p class="rv">이 페이지의 모든 수치는 공개 저장소에서 같은 명령으로 재현할 수 있고, 게임은 지금 이 브라우저에서 돌아갑니다.</p>
     <div class="ctas rv">
       <a class="btn solid" href="./index.html" target="_blank" rel="noopener">플레이 ↗</a>
