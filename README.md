@@ -3,7 +3,7 @@
 > 모든 위협이 터지기 전에 미리 표시되는 배치 퍼즐 디펜스 게임. 설치할 것 없는 브라우저 데모.
 > A placement puzzle defense game where every threat is shown before it fires; zero-dependency browser demo.
 >
-> 작품 페이지: https://ljhljh0703-cmd.github.io/jelly-panic-case/ · 플레이: https://ljhljh0703-cmd.github.io/jelly-panic/
+> 작품 페이지: https://ljhljh0703-cmd.github.io/jelly-panic/portfolio.html · 플레이: https://ljhljh0703-cmd.github.io/jelly-panic/
 
 **실행**
 
