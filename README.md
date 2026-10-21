@@ -1,5 +1,42 @@
 # Jelly Panic / 지켜줘! 젤리 패닉
 
+> 모든 위협이 터지기 전에 미리 표시되는 배치 퍼즐 디펜스 게임. 설치할 것 없는 브라우저 데모.
+> A placement puzzle defense game where every threat is shown before it fires; zero-dependency browser demo.
+>
+> 작품 페이지: https://ljhljh0703-cmd.github.io/jelly-panic-case/ · 플레이: https://ljhljh0703-cmd.github.io/jelly-panic/
+
+**실행**
+
+`index.html`을 브라우저로 연다. 빌드·설치·키 없음.
+
+**시험** (Node만 있으면 됨)
+
+```sh
+node test/test.js       # 게임 규칙
+node test/smoke.js      # 화면 동작
+node test/sim.js 200    # 200판 시뮬레이션: 피할 수 없는 위협이 나오는지
+```
+
+2026-10-21 컨테이너에서 돌린 결과: `test.js` 90개 통과 · `smoke.js` 16개 통과 · `sim.js 200` 피할 수 없는 위협 0건(0.00%).
+
+**구조**
+
+```
+index.html      배포용 단일 파일(GitHub Pages)
+src/core.js     게임 규칙. 브라우저와 Node 테스트가 같이 쓴다
+src/ui.js       화면·입력
+test/           규칙·화면·공정성 시험 (core.js · ui.js는 src로 가는 링크)
+portfolio.html  작품 페이지
+```
+
+**누가 무엇을**
+
+- 내가 정한 것: 기획·설계·판정 (이주형)
+- AI가 짠 것: 코드 작성, AI 코딩 도구와 함께
+- 내가 확인한 것: 검증 (이주형)
+
+---
+
 Playable demo: https://ljhljh0703-cmd.github.io/jelly-panic/
 
 `Jelly Panic` is a zero-dependency, single-file browser demo for a telegraphed placement puzzle defense game. Every threat is previewed before it fires, so the core challenge is reading the board rather than reacting quickly.
