@@ -139,6 +139,11 @@
   #dexcard, #modescard { background:#FFFDF7; border-radius:24px; padding:20px 22px 16px; width:min(340px, 88vw); max-height:76vh; overflow-y:auto; box-shadow:0 8px 0 rgba(140,90,40,.3); animation:popin .3s cubic-bezier(.34,1.56,.64,1); }
   #dexcard h3, #modescard h3 { font-size:18px; color:#6B4226; margin:2px 0 10px; text-align:center; }
   .moderow { cursor:pointer; border-radius:14px; }
+  #stagegrid { display:grid; grid-template-columns:repeat(6, 1fr); gap:6px; padding:6px 2px 10px; }
+  .stg { height:40px; font-size:14px; border-radius:12px; background:#FFF; color:#8D5B3F; border:2px solid #F0D9BE; padding:0; box-shadow:none; }
+  .stg.done { background:#FFF3DC; color:#B98A5E; }
+  .stg.now { background:#FF9EB5; color:#fff; border-color:#FF9EB5; }
+  .stg.lock { opacity:.35; }
   .moderow:active { background:#FFF0E0; transform:scale(.98); }
   #modesclose { display:block; margin:12px auto 0; font-size:16px; background:#FFF; color:#B98A5E; border:2px solid #F0D9BE; padding:8px 30px; border-radius:16px; }
   .dexrow { display:flex; align-items:center; gap:12px; padding:7px 2px; border-bottom:1px solid #F4E6D2; }
@@ -231,6 +236,7 @@
     <div class="dexrow moderow" id="mode-daily"><div class="dexemoji">🗓️</div><div><b>오늘의 임무</b><span id="dailyinfo">날마다 모두 같은 판 — 몇 수 만에 깰까요</span></div></div>
     <div class="dexrow moderow" id="mode-classic"><div class="dexemoji">♾️</div><div><b>클래식</b><span>끝없이 버티며 최고 점수에 도전해요</span></div></div>
     <div class="dexrow moderow" id="mode-stage"><div class="dexemoji">🗼</div><div><b>스테이지</b><span id="stageinfo">임무를 완수하며 올라가요</span></div></div>
+    <div id="stagegrid" style="display:none"></div>
     <div class="dexrow moderow" id="mode-defense"><div class="dexemoji">🛡️</div><div><b>디펜스</b><span>한가운데 소중한 것 — 몰려오는 까마귀를 막아요</span></div></div>
     <button id="modesclose" class="btn">닫기</button>
   </div>
@@ -2418,9 +2424,9 @@
     if (g.type === 'rescue') return '소중한 것 ' + g.n + '번 구출하기';
     return g.moves + '수 안에 ' + g.score + '점 만들기';
   }
-  function pickMode(m) {
+  function pickMode(m, stageIdx) {
     currentMode = m;
-    currentStage = (m === 'stage') ? unlockedStage() : 0;
+    currentStage = (m === 'stage') ? (stageIdx != null ? Math.min(stageIdx, unlockedStage()) : unlockedStage()) : 0;
     var mp = document.getElementById('modes');
     if (mp && mp.classList) mp.classList.remove('show');
     reset((Date.now() % 1000000) | 0);
@@ -2431,6 +2437,7 @@
   var modeBtnEl = document.getElementById('mode');
   if (modeBtnEl && modeBtnEl.addEventListener) modeBtnEl.addEventListener('click', function () {
     var mp = document.getElementById('modes'), si = document.getElementById('stageinfo');
+    var sg = document.getElementById('stagegrid'); if (sg && sg.style) sg.style.display = 'none';
     if (si) si.textContent = '스테이지 ' + (unlockedStage() + 1) + ' — ' + stageGoalDesc(unlockedStage());
     var di = document.getElementById('dailyinfo');
     if (di) { var dk = kstKey(), drc = dailyRec(dk); di.textContent = dayLabel(dk) + ' — ' + goalDesc(C.daily(dk).goal) + (drc.best != null ? ' · 내 최고 ' + drc.best + '수' : ''); }
@@ -2438,9 +2445,28 @@
   });
   var dailyChipEl = document.getElementById('dailychip');
   if (dailyChipEl && dailyChipEl.addEventListener) dailyChipEl.addEventListener('click', function () { ensureAudio(); pickMode('daily'); });
-  ['daily', 'classic', 'stage', 'defense'].forEach(function (m) {
+  ['daily', 'classic', 'defense'].forEach(function (m) {
     var el = document.getElementById('mode-' + m);
     if (el && el.addEventListener) el.addEventListener('click', function () { pickMode(m); });
+  });
+  // 스테이지 고르기(10-24, 30개로 늘면서): 스테이지 줄을 누르면 번호판이 열리고, 연 스테이지까지 골라서 다시 할 수 있다
+  var stageRowEl = document.getElementById('mode-stage');
+  if (stageRowEl && stageRowEl.addEventListener) stageRowEl.addEventListener('click', function () {
+    var grid = document.getElementById('stagegrid');
+    if (!grid || !document.createElement) { pickMode('stage'); return; }
+    if (grid.style.display !== 'none') { grid.style.display = 'none'; return; }
+    grid.innerHTML = '';
+    var un = unlockedStage();
+    for (var si = 0; si < C.STAGES.length; si++) (function (idx) {
+      var b = document.createElement('button');
+      b.className = 'btn stg' + (idx < un ? ' done' : idx === un ? ' now' : ' lock');
+      b.textContent = idx < un ? '✓' + (idx + 1) : String(idx + 1);
+      b.title = stageGoalDesc(idx);
+      if (idx <= un) b.addEventListener('click', function (ev) { ev.stopPropagation(); pickMode('stage', idx); });
+      else b.disabled = true;
+      grid.appendChild(b);
+    })(si);
+    grid.style.display = '';
   });
   var modesCloseEl = document.getElementById('modesclose');
   if (modesCloseEl && modesCloseEl.addEventListener) modesCloseEl.addEventListener('click', function () {

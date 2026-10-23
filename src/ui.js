@@ -1323,9 +1323,9 @@
     if (g.type === 'rescue') return '소중한 것 ' + g.n + '번 구출하기';
     return g.moves + '수 안에 ' + g.score + '점 만들기';
   }
-  function pickMode(m) {
+  function pickMode(m, stageIdx) {
     currentMode = m;
-    currentStage = (m === 'stage') ? unlockedStage() : 0;
+    currentStage = (m === 'stage') ? (stageIdx != null ? Math.min(stageIdx, unlockedStage()) : unlockedStage()) : 0;
     var mp = document.getElementById('modes');
     if (mp && mp.classList) mp.classList.remove('show');
     reset((Date.now() % 1000000) | 0);
@@ -1336,6 +1336,7 @@
   var modeBtnEl = document.getElementById('mode');
   if (modeBtnEl && modeBtnEl.addEventListener) modeBtnEl.addEventListener('click', function () {
     var mp = document.getElementById('modes'), si = document.getElementById('stageinfo');
+    var sg = document.getElementById('stagegrid'); if (sg && sg.style) sg.style.display = 'none';
     if (si) si.textContent = '스테이지 ' + (unlockedStage() + 1) + ' — ' + stageGoalDesc(unlockedStage());
     var di = document.getElementById('dailyinfo');
     if (di) { var dk = kstKey(), drc = dailyRec(dk); di.textContent = dayLabel(dk) + ' — ' + goalDesc(C.daily(dk).goal) + (drc.best != null ? ' · 내 최고 ' + drc.best + '수' : ''); }
@@ -1343,9 +1344,28 @@
   });
   var dailyChipEl = document.getElementById('dailychip');
   if (dailyChipEl && dailyChipEl.addEventListener) dailyChipEl.addEventListener('click', function () { ensureAudio(); pickMode('daily'); });
-  ['daily', 'classic', 'stage', 'defense'].forEach(function (m) {
+  ['daily', 'classic', 'defense'].forEach(function (m) {
     var el = document.getElementById('mode-' + m);
     if (el && el.addEventListener) el.addEventListener('click', function () { pickMode(m); });
+  });
+  // 스테이지 고르기(10-24, 30개로 늘면서): 스테이지 줄을 누르면 번호판이 열리고, 연 스테이지까지 골라서 다시 할 수 있다
+  var stageRowEl = document.getElementById('mode-stage');
+  if (stageRowEl && stageRowEl.addEventListener) stageRowEl.addEventListener('click', function () {
+    var grid = document.getElementById('stagegrid');
+    if (!grid || !document.createElement) { pickMode('stage'); return; }
+    if (grid.style.display !== 'none') { grid.style.display = 'none'; return; }
+    grid.innerHTML = '';
+    var un = unlockedStage();
+    for (var si = 0; si < C.STAGES.length; si++) (function (idx) {
+      var b = document.createElement('button');
+      b.className = 'btn stg' + (idx < un ? ' done' : idx === un ? ' now' : ' lock');
+      b.textContent = idx < un ? '✓' + (idx + 1) : String(idx + 1);
+      b.title = stageGoalDesc(idx);
+      if (idx <= un) b.addEventListener('click', function (ev) { ev.stopPropagation(); pickMode('stage', idx); });
+      else b.disabled = true;
+      grid.appendChild(b);
+    })(si);
+    grid.style.display = '';
   });
   var modesCloseEl = document.getElementById('modesclose');
   if (modesCloseEl && modesCloseEl.addEventListener) modesCloseEl.addEventListener('click', function () {
