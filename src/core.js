@@ -198,6 +198,12 @@
       state.tray.push(randInt(state, PLAYABLE));
       state.trayColors.push(randInt(state, NCOLORS));
     }
+    // 반반 비교 후보 tune.fitTray: 세 조각 다 놓을 곳이 없으면 첫 조각을 한 칸짜리로 바꿔 '놓을 곳 없음'으로 바로 끝나는 판을 줄인다
+    if (state.tune && state.tune.fitTray && state.grid && state.grid.length) {
+      var any = false;
+      for (var t = 0; t < 3 && !any; t++) for (var r = 0; r < N && !any; r++) for (var c = 0; c < N && !any; c++) if (canPlace(state, state.tray[t], r, c)) any = true;
+      if (!any) state.tray[0] = 0;
+    }
   }
 
   function shapeCells(shapeIdx, r, c) {
@@ -615,7 +621,8 @@
     // 새 위협 예고 — 과제 A(coverable 검증) + 세션4 티어별 위협 풀.
     // ⚠️ 반드시 슬라임 번짐·아기 등장 등 모든 보드 변동 이후에 실행 — 스폰 후 보드가 바뀌면 coverable 보장이 깨진다 (세션4 시뮬에서 실측된 순서 결함 수정).
     var diff = difficulty(state.placements + (state.diffBoost || 0)); // 세션13: 스테이지/디펜스 난이도 부스트
-    if (state.placements % diff.spawnEvery === 0) {
+    var quiet = state.tune && state.tune.quietStart >= state.placements; // 반반 비교 후보: 처음 N수는 새 위협 없음
+    if (state.placements % diff.spawnEvery === 0 && !quiet) {
       for (var sn = 0; sn < diff.spawnCount; sn++) {
         if (state.threats.length >= diff.maxThreats) break;
         spawnThreat(state, ev, diff);
@@ -684,7 +691,9 @@
     }
     if (pool.length === 0) return; // 스폰 보류 (과제 A 규칙)
     var pick = pool[randInt(state, pool.length)];
-    state.threats.push({ r: pick[0], c: pick[1], type: type, countdown: COUNTDOWN, _cov: true });
+    var cd = COUNTDOWN;
+    if (state.tune && state.tune.countdownEarly && diff.tier === 1) cd = state.tune.countdownEarly; // 반반 비교 후보: 1단계 예고를 더 길게
+    state.threats.push({ r: pick[0], c: pick[1], type: type, countdown: cd, _cov: true });
     ev.spawned.push([pick[0], pick[1], type]);
   }
 
