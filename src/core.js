@@ -120,6 +120,7 @@
       goal: dly ? dly.goal : opts.mode === 'stage' ? STAGES[Math.min(opts.stage | 0, STAGES.length - 1)].goal : null,
       diffBoost: dly ? dly.diffBoost : opts.mode === 'stage' ? STAGES[Math.min(opts.stage | 0, STAGES.length - 1)].diffBoost : (opts.mode === 'defense' ? 10 : 0),
       dailyKey: dly ? dly.key : null,
+      tune: opts.tune || {},          // 반반 비교 B 규칙 (비면 기본 규칙)
       colorCleared: [0, 0, 0, 0, 0], // 색별 파괴 누계 (임무 추적)
       totalRescued: 0,
       crowsDefused: 0,               // 디펜스 방어 카운터

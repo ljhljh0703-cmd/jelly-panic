@@ -379,6 +379,7 @@
       goal: dly ? dly.goal : opts.mode === 'stage' ? STAGES[Math.min(opts.stage | 0, STAGES.length - 1)].goal : null,
       diffBoost: dly ? dly.diffBoost : opts.mode === 'stage' ? STAGES[Math.min(opts.stage | 0, STAGES.length - 1)].diffBoost : (opts.mode === 'defense' ? 10 : 0),
       dailyKey: dly ? dly.key : null,
+      tune: opts.tune || {},          // 반반 비교 B 규칙 (비면 기본 규칙)
       colorCleared: [0, 0, 0, 0, 0], // 색별 파괴 누계 (임무 추적)
       totalRescued: 0,
       crowsDefused: 0,               // 디펜스 방어 카운터
@@ -1080,6 +1081,9 @@
   // 보내지 않는 것: 이름·사진·광고 ID 같은 기기 고유 번호·쿠키·IP 주소. 사진을 등록했는지 여부도 보내지 않는다. did는 무작위 번호라 사람을 알아낼 수 없다.
   // 수집 주소(TRACK_URL)가 비어 있으면 아무것도 보내지 않는다. Do Not Track·Global Privacy Control·?notrack 이면 끄고, 그때는 did도 만들지 않는다.
   var BUILD = '20261024'; // 공개판 번호 — 반반 비교·고친 전후 비교에 쓴다
+  // 반반 비교: id 를 넣으면 B 그룹 기기(기기마다 고정)만 B 규칙으로 판을 연다. id 가 비면 두 그룹 똑같음.
+  // 내기 전에 판정 기준 한 줄을 적는다(무엇이 몇 % 오르면 계속 / 그대로면 되돌림). 기록의 ver 에 '-id' 가 붙는다.
+  var EXPERIMENT = { id: '', B: null };
   var TRACK_URL = 'https://jelly-panic-collector.vercel.app/api/collect';
   var track = (function () {
     var q = location.search || '';
@@ -1107,7 +1111,7 @@
     }
     function ev(type, data) {
       if (off) return;
-      var e = { v: 2, sid: sid, did: did, ab: ab, ver: BUILD, n: n++, sec: Math.round((Date.now() - t0) / 1000), type: type, src: src, ad: ad };
+      var e = { v: 2, sid: sid, did: did, ab: ab, ver: BUILD + (EXPERIMENT.id ? '-' + EXPERIMENT.id : ''), n: n++, sec: Math.round((Date.now() - t0) / 1000), type: type, src: src, ad: ad };
       for (var k in data) if (Object.prototype.hasOwnProperty.call(data, k)) e[k] = data[k];
       queue.push(e); sent.push(e);
       if (queue.length >= 10 || type === 'end' || type === 'leave') flush();
@@ -1144,6 +1148,7 @@
   }
 
   var currentMode = 'classic', currentStage = 0; // 세션13: 모드 상태
+  function abTune() { return EXPERIMENT.id && track.ab === 'B' ? EXPERIMENT.B : null; }
   // ── 오늘의 임무 (2026-10-24 작가 결정: 날마다 임무 하나, 도전 무제한, 최고 기록 = 가장 적은 수로 깬 기록) ──
   function kstKey(ms) { var d = new Date((ms || Date.now()) + 9 * 3600 * 1000); return d.getUTCFullYear() + ('0' + (d.getUTCMonth() + 1)).slice(-2) + ('0' + d.getUTCDate()).slice(-2); } // 모두 같은 날 같은 판: 한국 시간 기준
   function dayLabel(key) { return (+key.slice(4, 6)) + '월 ' + (+key.slice(6, 8)) + '일'; }
@@ -1161,10 +1166,10 @@
   function reset(seed) {
     if (currentMode === 'daily') {
       var dk = kstKey();
-      state = C.newGame(0, { mode: 'daily', daily: C.daily(dk) });
+      state = C.newGame(0, { mode: 'daily', daily: C.daily(dk), tune: abTune() });
       seed = state.seed;
       var dr = dailyRec(dk); dr.tries++; dailySave(dk, dr);
-    } else state = C.newGame(seed, { mode: currentMode, stage: currentStage });
+    } else state = C.newGame(seed, { mode: currentMode, stage: currentStage, tune: abTune() });
     fx = []; cellPop = {}; fallAnim = {}; shakeT = 0;
     runRescued = 0; runMaxCombo = 0;
     var nb = document.getElementById('newbest');
