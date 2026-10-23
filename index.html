@@ -80,7 +80,7 @@
   @keyframes popin { from{transform:scale(.6); opacity:0} to{transform:scale(1); opacity:1} }
   #overmascot { width:90px; height:90px; margin:0 auto 6px; }
   #overscore { font-size:44px; color:#6B4226; }
-  #overcause { font-size:15px; color:#B98A5E; margin:4px 0 14px; }
+  #overcause { font-size:15px; color:#B98A5E; margin:4px 0 14px; white-space:pre-line; line-height:1.5; }
   #replay { font-size:22px; background:#FF9EB5; color:#fff; padding:10px 40px; border-radius:20px; }
   #replay:active { transform:scale(.94); }
 
@@ -2270,7 +2270,7 @@
       if (holesN) why.push('구멍 ' + holesN);
       if (stickyN) why.push('시럽·설탕 ' + stickyN);
       // 작가 결정(10-23): 지는 이유 = 놓친 위협. 구멍·시럽·설탕은 모두 막지 못한 예고가 남긴 칸이다
-      cause = why.length ? '놓친 위협이 판을 막았어요 — ' + why.join(' · ') + '칸' : '놓을 자리가 없어요';
+      cause = '놓을 자리가 없어요' + (why.length ? '\n놓친 위협이 남긴 칸: ' + why.join(' · ') : '');
     }
     document.getElementById('overcause').textContent = cause;
     // 세션7: 판 스탯 + 베스트 스코어(로컬 저장) + 신기록 배지

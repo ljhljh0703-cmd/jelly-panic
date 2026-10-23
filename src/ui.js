@@ -1249,7 +1249,7 @@
       if (holesN) why.push('구멍 ' + holesN);
       if (stickyN) why.push('시럽·설탕 ' + stickyN);
       // 작가 결정(10-23): 지는 이유 = 놓친 위협. 구멍·시럽·설탕은 모두 막지 못한 예고가 남긴 칸이다
-      cause = why.length ? '놓친 위협이 판을 막았어요 — ' + why.join(' · ') + '칸' : '놓을 자리가 없어요';
+      cause = '놓을 자리가 없어요' + (why.length ? '\n놓친 위협이 남긴 칸: ' + why.join(' · ') : '');
     }
     document.getElementById('overcause').textContent = cause;
     // 세션7: 판 스탯 + 베스트 스코어(로컬 저장) + 신기록 배지
