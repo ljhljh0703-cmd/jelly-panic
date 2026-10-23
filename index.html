@@ -17,8 +17,8 @@
   #wrap { width:min(440px, 100vw); padding:10px 12px calc(12px + env(safe-area-inset-bottom, 4px)); display:flex; flex-direction:column; align-items:center; gap:8px; }
 
   /* ── 헤더: 마스코트 + 점수 + 벨 ── */
-  #header { width:100%; display:flex; align-items:center; gap:10px; }
-  #mascot { width:74px; height:74px; flex:0 0 auto; filter:drop-shadow(0 3px 0 rgba(140,90,40,.25)); }
+  #header { width:100%; display:flex; align-items:center; gap:6px; }
+  #mascot { width:60px; height:60px; flex:0 0 auto; filter:drop-shadow(0 3px 0 rgba(140,90,40,.25)); }
   #mascot .face-worried, #mascot .face-cheer, #mascot .face-ko { display:none; }
   #mascot.worried .face-idle { display:none; } #mascot.worried .face-worried { display:block; }
   #mascot.cheer  .face-idle { display:none; } #mascot.cheer  .face-cheer  { display:block; }
@@ -40,7 +40,14 @@
   #bell.used { background:#E7DFD2; filter:grayscale(.9); box-shadow:none; }
   #bell .badge { position:absolute; top:-4px; right:-4px; background:#FF6B8A; color:#fff; font-size:12px; width:20px; height:20px; border-radius:50%; line-height:20px; }
   #bell.used .badge { display:none; }
-  #restart { width:56px; height:56px; font-size:24px; background:#BDE8C8; }
+  #restart { width:56px; height:56px; font-size:24px; background:#BDE8C8; flex:none; }
+  #bell { flex:none; }
+  #bell, #restart { width:48px; }
+  #scorebox { min-width:0; }
+  /* 검토(10-23): 모드·사진·도감·소리 버튼이 17×16으로 눌려 있었음 → 2×2 묶음, 한 칸 40×40 */
+  #tools { display:grid; grid-template-columns:40px 40px; grid-auto-rows:40px; gap:4px; flex:none; }
+  .tool { width:40px; height:40px; font-size:19px; background:#FFFDF7; border-radius:12px; padding:0; line-height:40px; }
+  .tool:active { transform:scale(.92); }
 
   /* ── 보드 ── */
   #boardwrap { position:relative; }
@@ -69,15 +76,15 @@
     display:none; align-items:center; justify-content:center; z-index:100;
   }
   #over.show { display:flex; }
-  #overcard { background:#FFFDF7; border-radius:26px; padding:26px 34px; text-align:center; box-shadow:0 8px 0 rgba(140,90,40,.3); animation:popin .35s cubic-bezier(.34,1.56,.64,1); }
+  #overcard { max-width:min(340px, 88vw); background:#FFFDF7; border-radius:26px; padding:26px 34px; text-align:center; box-shadow:0 8px 0 rgba(140,90,40,.3); animation:popin .35s cubic-bezier(.34,1.56,.64,1); }
   @keyframes popin { from{transform:scale(.6); opacity:0} to{transform:scale(1); opacity:1} }
   #overmascot { width:90px; height:90px; margin:0 auto 6px; }
   #overscore { font-size:44px; color:#6B4226; }
-  #overcause { font-size:15px; color:#B98A5E; margin:4px 0 14px; }
+  #overcause { font-size:15px; color:#B98A5E; margin:4px 0 14px; white-space:pre-line; line-height:1.5; }
   #replay { font-size:22px; background:#FF9EB5; color:#fff; padding:10px 40px; border-radius:20px; }
   #replay:active { transform:scale(.94); }
 
-  #seed { font-size:11px; color:#C9AE8F; margin-top:2px; }
+  #seed { font-size:11px; color:#C9AE8F; margin-top:2px; display:none; }
 
   /* ── 난이도 티어 핍 (세션3) — 커브 상시 노출, 텍스트 0 ── */
   #tierpips { display:flex; flex-direction:column; gap:4px; justify-content:center; margin-left:2px; }
@@ -92,15 +99,19 @@
   #bin.hot { background:#FFE3D6; border-color:#FF7043; transform:scale(1.08); opacity:1; }
 
   /* ── 세션5·7: 설명 토스트 — 보드 상단 앵커 (트레이/통과 구조적으로 못 겹침) ── */
-  #toast { position:absolute; left:50%; top:10px; transform:translateX(-50%) translateY(-6px); background:rgba(74,46,23,.92); color:#FFF6E8; font-size:14px; padding:9px 16px; border-radius:14px; opacity:0; pointer-events:none; transition:opacity .25s, transform .25s; z-index:60; max-width:92%; text-align:center; box-sizing:border-box; }
-  #toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+  /* 검토(10-23): 판 위 1~2행을 가리던 말풍선 → 조각 칸 아래 자리(보이지 않을 때도 자리 유지) */
+  #toast { position:relative; min-height:38px; margin:2px auto 0; transform:translateY(-6px); background:rgba(74,46,23,.92); color:#FFF6E8; font-size:14px; padding:9px 16px; border-radius:14px; opacity:0; pointer-events:none; transition:opacity .25s, transform .25s; z-index:60; max-width:92%; text-align:center; box-sizing:border-box; }
+  #toast.show { opacity:1; transform:translateY(0); }
 
   /* ── 세션7: 상용 폴리시 — safe-area·스크롤 바운스 방지·탭 하이라이트 제거·짧은 화면 압축 ── */
   html, body { overscroll-behavior:none; }
   * { -webkit-tap-highlight-color:transparent; -webkit-user-select:none; user-select:none; }
-  #wrap { padding-bottom:env(safe-area-inset-bottom); padding-top:env(safe-area-inset-top); }
+  #wrap { padding-bottom:env(safe-area-inset-bottom); padding-top:max(8px, env(safe-area-inset-top)); }
   @media (max-height: 700px) {
     #mascot { width:44px; height:44px; }
+    #tools { grid-template-columns:36px 36px; grid-auto-rows:36px; }
+    .tool { width:36px; height:36px; line-height:36px; font-size:17px; }
+    #bell, #restart { width:48px; height:48px; }
     #scorebox { padding:4px 14px; }
     #score { font-size:24px; }
     #seed { display:none; }
@@ -170,10 +181,12 @@
       <div id="score">0</div>
     </div>
     <button id="bell" class="btn">🔔<span class="badge">1</span></button>
-    <button id="mode" class="btn" title="모드 선택">🎮</button>
-    <button id="photo" class="btn" title="소중한 것 등록">📷</button>
-    <button id="help" class="btn" title="도감">❓</button>
-    <button id="mute" class="btn" title="소리 켜기/끄기">🔊</button>
+    <div id="tools">
+      <button id="mode" class="btn tool" title="모드 선택" aria-label="모드 선택">🎮</button>
+      <button id="photo" class="btn tool" title="소중한 것 등록" aria-label="소중한 것 사진 등록">📷</button>
+      <button id="help" class="btn tool" title="도감" aria-label="도감">❓</button>
+      <button id="mute" class="btn tool" title="소리 켜기/끄기" aria-label="소리 켜기/끄기">🔊</button>
+    </div>
     <button id="restart" class="btn" title="새 판 시작">↺</button>
     <div id="tierpips" title=""></div>
   </div>
@@ -183,7 +196,6 @@
   <div id="boardwrap">
     <canvas id="board"></canvas>
     <div id="hint" style="display:none">👆</div>
-    <div id="toast"></div>
   </div>
 
   <div id="tray">
@@ -192,10 +204,9 @@
     <div class="slot" data-slot="2"><canvas></canvas></div>
     <div id="bin">🗑️</div>
   </div>
+  <div id="toast"></div>
   <div id="seed"></div>
 </div>
-
-<div id="toast"></div>
 
 <canvas id="drag"></canvas>
 <input type="file" id="photoinput" accept="image/*" multiple style="display:none">
@@ -292,26 +303,31 @@
   // 난이도 커브 (세션3·4) — 배치 수 기반 고정 커브. 성과 기반 몰래 보정 아님 = Active DDA 계약 준수. 티어 핍으로 상시 노출.
   // 세션4: 위협 종류도 티어별 순차 등장(캔디크러시 방식) — 첫 10초 이해(Pillar 2)를 지키면서 뒤로 갈수록 몰아침.
   // 세션12 (작가 피드백 "선택 강제"): 티어3+는 스폰 이벤트당 위협 2개 — 전부 못 막는 상황을 의도적으로 생성 (까마귀 잡으면 균열을 포기하는 삼중 판단)
+  // 검토(10-23, 작가 결정 「위협을 놓쳐서 지게」): 설탕(굳히기) 비중↓·균열 비중↑. 예고 주기는 그대로.
+  // 익숙한 플레이 자동 250판: 설탕 발동 판당 15.4 → 5.8회, 진 판의 구멍 1 → 2칸, 시럽·설탕 7 → 4칸
   function difficulty(placements) {
-    if (placements >= 70) return { tier: 4, spawnEvery: 2, maxThreats: 5, spawnCount: 2, weights: [['crack', 0.3], ['jelly', 0.15], ['crust', 0.3], ['slime', 0.25]], crowChance: 0.45 };
-    if (placements >= 40) return { tier: 3, spawnEvery: 2, maxThreats: 4, spawnCount: 2, weights: [['crack', 0.35], ['jelly', 0.2], ['crust', 0.25], ['slime', 0.2]], crowChance: 0.35 };
-    if (placements >= 20) return { tier: 2, spawnEvery: 3, maxThreats: 3, spawnCount: 1, weights: [['crack', 0.4], ['jelly', 0.25], ['crust', 0.35]], crowChance: 0.25 }; // 세션5: 까마귀 조기 등장
+    if (placements >= 70) return { tier: 4, spawnEvery: 2, maxThreats: 5, spawnCount: 2, weights: [['crack', 0.55], ['jelly', 0.15], ['crust', 0.12], ['slime', 0.18]], crowChance: 0.45 };
+    if (placements >= 40) return { tier: 3, spawnEvery: 2, maxThreats: 4, spawnCount: 2, weights: [['crack', 0.6], ['jelly', 0.15], ['crust', 0.1], ['slime', 0.15]], crowChance: 0.35 };
+    if (placements >= 20) return { tier: 2, spawnEvery: 3, maxThreats: 3, spawnCount: 1, weights: [['crack', 0.65], ['jelly', 0.2], ['crust', 0.15]], crowChance: 0.25 };
     return { tier: 1, spawnEvery: 3, maxThreats: 2, spawnCount: 1, weights: [['crack', 0.6], ['jelly', 0.4]], crowChance: 0 };
   }
 
   // ── 세션13: 스테이지 임무 (작가 확정 — 쿠키런 모험의 탑 방식). 시간 목표는 턴제 정합상 "수 제한"으로 구현.
+  // 세션14 (작가): 색 임무 = 색 조합 or 단일색 대량 — 마카롱 원샷 봉쇄
+  // 검토(10-23): 7에서 벽(16%)·8·9에서 다시 쉬워지던 곡선 → 오르막으로. 익숙한 플레이 자동 200판 깨는 비율 99 100 100 95 93 97 91 94 74 63
   var STAGES = [
-    { goal: { type: 'color', color: 2, n: 12 }, diffBoost: 0 },              // 1. 코딱지맛 12개
-    { goal: { type: 'rescue', n: 1 }, diffBoost: 18 },                       // 2. 소중한 것 1 구출
-    { goal: { type: 'score', score: 250, moves: 25 }, diffBoost: 10 },       // 3. 25수 안에 250점
-    { goal: { type: 'color', color: 4, n: 20 }, diffBoost: 15 },             // 4. 가지맛 20개
-    { goal: { type: 'rescue', n: 2 }, diffBoost: 24 },                       // 5. 구출 2
-    { goal: { type: 'score', score: 500, moves: 35 }, diffBoost: 25 },       // 6. 35수 안에 500점
-    { goal: { type: 'color', color: 0, n: 30 }, diffBoost: 35 },             // 7. 딸기맛 30개
-    { goal: { type: 'rescue', n: 3 }, diffBoost: 44 },                       // 8. 구출 3
-    { goal: { type: 'score', score: 900, moves: 45 }, diffBoost: 50 },       // 9. 45수 안에 900점
-    { goal: { type: 'rescue', n: 4 }, diffBoost: 62 }                        // 10. 구출 4
+    { goal: { type: 'colors', parts: [[2, 6], [0, 6]] }, diffBoost: 0 },   // 1. 코딱지맛 6 + 딸기맛 6 (첫 판 성공 쉽게)
+    { goal: { type: 'rescue', n: 1 }, diffBoost: 18 },                     // 2. 소중한 것 1 구출
+    { goal: { type: 'score', score: 250, moves: 25 }, diffBoost: 10 },     // 3. 25수 안에 250점
+    { goal: { type: 'colors', parts: [[4, 12], [3, 12]] }, diffBoost: 15 }, // 4. 가지맛 12 + 치약맛 12
+    { goal: { type: 'rescue', n: 2 }, diffBoost: 40 },                     // 5. 구출 2
+    { goal: { type: 'score', score: 650, moves: 30 }, diffBoost: 30 },     // 6. 30수 안에 650점
+    { goal: { type: 'rescue', n: 3 }, diffBoost: 55 },                     // 7. 구출 3
+    { goal: { type: 'score', score: 1100, moves: 40 }, diffBoost: 52 },    // 8. 40수 안에 1100점
+    { goal: { type: 'colors', parts: [[2, 20]] }, diffBoost: 30 },         // 9. 코딱지맛 20개 (단일 대량)
+    { goal: { type: 'colors', parts: [[0, 15], [1, 15], [2, 15]] }, diffBoost: 62 }  // 10. 3색 조합
   ];
+  var WAVE_EVERY = 10; // 세션14: 디펜스 웨이브 주기 (배치 수)
   var DEFENSE_BABY = [3, 4]; // 세션13: 디펜스 모드 — 중앙 영구 고정 보호 대상 (작가 예시)
 
   // opts: { mode: 'classic'|'stage'|'defense', stage: 0-based }
@@ -324,7 +340,8 @@
       diffBoost: opts.mode === 'stage' ? STAGES[Math.min(opts.stage | 0, STAGES.length - 1)].diffBoost : (opts.mode === 'defense' ? 10 : 0),
       colorCleared: [0, 0, 0, 0, 0], // 색별 파괴 누계 (임무 추적)
       totalRescued: 0,
-      crowsDefused: 0,               // 디펜스 웨이브 카운터
+      crowsDefused: 0,               // 디펜스 방어 카운터
+      wave: 0,                       // 세션14: 디펜스 웨이브 번호
       seed: seed | 0,
       rngState: seed | 0,
       grid: [],
@@ -358,7 +375,7 @@
   function checkGoal(state) {
     if (state.mode !== 'stage' || !state.goal || state.over) return;
     var g = state.goal, done = false;
-    if (g.type === 'color') done = state.colorCleared[g.color] >= g.n;
+    if (g.type === 'colors') done = g.parts.every(function (p) { return state.colorCleared[p[0]] >= p[1]; });
     else if (g.type === 'rescue') done = state.totalRescued >= g.n;
     else if (g.type === 'score') done = state.score >= g.score;
     if (done) { state.over = true; state.overCause = 'clear'; }
@@ -475,6 +492,12 @@
             state.grid[t.r][t.c] = CRUST; state.colors[t.r][t.c] = null;
             ev.fired.push([t.r, t.c, 'crust']);
           }
+        } else if (t.type === 'peck') {
+          // 방벽 쪼기 (세션14 디펜스): 보호 대상 인접 방벽 블록을 부숨 — 블록이 먼저 사라졌으면 불발
+          if (state.grid[t.r][t.c] === BLOCK) {
+            state.grid[t.r][t.c] = EMPTY; state.colors[t.r][t.c] = null;
+            ev.fired.push([t.r, t.c, 'peck']);
+          }
         } else if (t.type === 'slime') {
           if (state.grid[t.r][t.c] === EMPTY) { state.grid[t.r][t.c] = SLIME; ev.fired.push([t.r, t.c, 'slime']); }
         } else if (state.grid[t.r][t.c] === EMPTY) {
@@ -581,22 +604,23 @@
         var mv2 = step.fell[f2];
         for (var d2 = 0; d2 < state.threats.length; d2++) {
           var thm = state.threats[d2];
-          if (thm.type === 'crust' && thm.r === mv2[0] && thm.c === mv2[1]) { thm.r = mv2[2]; thm.c = mv2[3]; }
+          if ((thm.type === 'crust' || thm.type === 'peck') && thm.r === mv2[0] && thm.c === mv2[1]) { thm.r = mv2[2]; thm.c = mv2[3]; }
         }
       }
       // 낙하 착지 해체 (예고 칸이 점유되면 위협 제거)
       var keep = [];
       for (var d = 0; d < state.threats.length; d++) {
         var th2 = state.threats[d];
-        if (th2.type !== 'crust' && state.grid[th2.r][th2.c] !== EMPTY) {
+        var isBlockTarget = th2.type === 'crust' || th2.type === 'peck';
+        if (!isBlockTarget && state.grid[th2.r][th2.c] !== EMPTY) {
           step.defused.push([th2.r, th2.c]);
           ev.defused.push([th2.r, th2.c]);
           if (th2.type === 'crack') step.gained += 25;
-          else if (th2.type === 'crow') step.gained += 50;
+          else if (th2.type === 'crow') { step.gained += 50; if (state.crowsDefused != null) state.crowsDefused++; }
           else if (th2.type === 'slime') step.gained += 15;
-        } else if (th2.type === 'crust' && state.grid[th2.r][th2.c] !== BLOCK) {
-          // 세션5 (작가 피드백): 타겟 블록이 사라지면 설탕 예고도 즉시 소멸 — "빈 칸 위 설탕 예고" 불합리 제거
-          ev.fizzled.push([th2.r, th2.c, 'crust']);
+        } else if (isBlockTarget && state.grid[th2.r][th2.c] !== BLOCK) {
+          // 세션5·14: 타겟 블록이 사라지면 예고도 즉시 소멸 (설탕·쪼기 공통)
+          ev.fizzled.push([th2.r, th2.c, th2.type]);
         } else keep.push(th2);
       }
       state.threats = keep;
@@ -615,8 +639,32 @@
       clearedLines: 0, clearedCells: [], jellyCleared: 0, rescued: 0, gained: 0,
       fell: [], chain: [], bomb: null, rocket: null, macaron: null, macaronColor: null,
       bombGranted: false, granted: null, babyEaten: null, babySpawn: null, slimeSpread: null, slimeKilled: false,
-      fizzled: [], discarded: null
+      fizzled: [], discarded: null,
+      waveStart: null, waveBonus: 0, waveCleared: null
     };
+  }
+
+  // 세션14: 디펜스 웨이브 스포너 — 빈 인접 칸 있으면 까마귀, 방벽으로 막혀 있으면 방벽 쪼기(peck)
+  function spawnCrowOrPeck(state, ev) {
+    var baby = findBaby(state);
+    if (!baby) return;
+    var seats = [], walls = [];
+    for (var dr = -1; dr <= 1; dr++) for (var dc = -1; dc <= 1; dc++) {
+      if (dr === 0 && dc === 0) continue;
+      var rr = baby[0] + dr, cc = baby[1] + dc;
+      if (rr < 0 || cc < 0 || rr >= N || cc >= N || threatAt(state, rr, cc)) continue;
+      if (state.grid[rr][cc] === EMPTY && canCoverCell(state, rr, cc)) seats.push([rr, cc]);
+      else if (state.grid[rr][cc] === BLOCK) walls.push([rr, cc]);
+    }
+    if (seats.length) {
+      var p = seats[randInt(state, seats.length)];
+      state.threats.push({ r: p[0], c: p[1], type: 'crow', countdown: COUNTDOWN, _cov: true });
+      ev.spawned.push([p[0], p[1], 'crow']);
+    } else if (walls.length) {
+      var w = walls[randInt(state, walls.length)];
+      state.threats.push({ r: w[0], c: w[1], type: 'peck', countdown: 2, _cov: true });
+      ev.spawned.push([w[0], w[1], 'peck']);
+    }
   }
 
   // 버리기 통 (세션5, 작가 확정): 조각을 버리면 모든 위협 카운트다운 1 전진(발동 포함) — "시간을 버리는" 선택.
@@ -640,7 +688,7 @@
     if (!state.telemetry) state.telemetry = { coverageLost: 0 };
     for (var ti = 0; ti < state.threats.length; ti++) {
       var tth = state.threats[ti];
-      if (tth.type === 'crust') continue;
+      if (tth.type === 'crust' || tth.type === 'peck') continue;
       var nowCov = canCoverCell(state, tth.r, tth.c);
       if (tth._cov !== false && !nowCov) state.telemetry.coverageLost++;
       tth._cov = nowCov;
@@ -694,6 +742,30 @@
 
     // 트레이 리필 — 스폰 검증(과제 A)이 "플레이어가 실제 쥘 트레이" 기준이 되도록 스폰보다 먼저
     if (state.tray[0] == null && state.tray[1] == null && state.tray[2] == null) refillTray(state);
+
+    // 세션14 디펜스: 웨이브 — 10배치마다 까마귀 습격(1~3마리), 자리 없으면 방벽 쪼기. 생존 보너스, 3웨이브마다 폭탄 지급.
+    if (state.mode === 'defense' && state.placements > 0 && state.placements % WAVE_EVERY === 0) {
+      var waveN = state.placements / WAVE_EVERY;
+      state.wave = waveN;
+      ev.waveStart = waveN;
+      if (waveN > 1) { var wb = 30 * (waveN - 1); state.score += wb; ev.waveBonus = wb; ev.waveCleared = waveN - 1; } // 이전 웨이브 생존 보너스
+      var crowN = Math.min(1 + ((waveN / 2) | 0), 3);
+      for (var wv = 0; wv < crowN; wv++) {
+        if (state.threats.length >= 6) break; // 디펜스 절대 상한 (가독성)
+        spawnCrowOrPeck(state, ev);
+      }
+      if (waveN % 3 === 0) { // 정비 보급
+        var hasSp = false;
+        for (var hs2 = 0; hs2 < 3; hs2++) if (state.tray[hs2] != null && state.tray[hs2] >= BOMB) hasSp = true;
+        if (!hasSp) {
+          var slot2 = state.tray[0] == null ? 0 : state.tray[1] == null ? 1 : state.tray[2] == null ? 2 : 0;
+          state.tray[slot2] = BOMB;
+          state.trayColors[slot2] = null;
+          ev.granted = BOMB;
+          ev.bombGranted = true;
+        }
+      }
+    }
 
     // 초코 슬라임 번짐 (세션4): 4배치마다, 그 턴에 슬라임을 잡았으면 억제. 무RNG 결정적(가장 위-왼쪽 슬라임의 상>우>하>좌 첫 빈 칸) — Pillar 1 유지.
     if (!ev.slimeKilled && state.placements % 4 === 0) {
@@ -750,7 +822,7 @@
     if (!state.telemetry) state.telemetry = { coverageLost: 0 };
     for (var ti = 0; ti < state.threats.length; ti++) {
       var tth = state.threats[ti];
-      if (tth.type === 'crust') continue;
+      if (tth.type === 'crust' || tth.type === 'peck') continue;
       var nowCov = canCoverCell(state, tth.r, tth.c);
       if (tth._cov !== false && !nowCov) state.telemetry.coverageLost++;
       tth._cov = nowCov;
@@ -775,7 +847,7 @@
     var type = null;
     var baby = findBaby(state);
     // 세션13 디펜스: 까마귀 웨이브 — 확률 0.6, 동시 2마리 (일반 모드: diff 확률, 동시 1마리)
-    var crowChance = state.mode === 'defense' ? 0.6 : diff.crowChance;
+    var crowChance = state.mode === 'defense' ? 0.35 : diff.crowChance; // 검토(10-23): 0.6 → 0.35, 처음 하는 사람이 5수 만에 지던 것 완화
     var crowCap = state.mode === 'defense' ? 2 : 1;
     var crowCount = 0;
     for (var ci = 0; ci < state.threats.length; ci++) if (state.threats[ci].type === 'crow') crowCount++;
@@ -938,7 +1010,7 @@
     N: N, EMPTY: EMPTY, BLOCK: BLOCK, JELLY: JELLY, HOLE: HOLE,
     BABY: BABY, CRUST: CRUST, SLIME: SLIME, NCOLORS: NCOLORS,
     BOMB: BOMB, ROCKET_H: ROCKET_H, ROCKET_V: ROCKET_V, MACARON: MACARON,
-    SHAPES: SHAPES, SPAWN_EVERY: SPAWN_EVERY, COUNTDOWN: COUNTDOWN, STAGES: STAGES, DEFENSE_BABY: DEFENSE_BABY,
+    SHAPES: SHAPES, SPAWN_EVERY: SPAWN_EVERY, COUNTDOWN: COUNTDOWN, STAGES: STAGES, DEFENSE_BABY: DEFENSE_BABY, WAVE_EVERY: WAVE_EVERY,
     difficulty: difficulty, previewPlace: previewPlace, discard: discard,
     newGame: newGame, canPlace: canPlace, place: place, anyMoveExists: anyMoveExists,
     ringBell: ringBell, shapeCells: shapeCells, threatAt: threatAt, snapshot: snapshot, countCells: countCells,
@@ -955,7 +1027,7 @@
   // ── 색상 (쿠키/캔디 파스텔 — 오리지널). 세션4: 색이 코어 상태(NCOLORS=5)가 됨 — 마카롱 타겟팅용
   var PIECE_COLORS = ['#FF9EB5', '#FFC15E', '#9BDB8A', '#8FD4F0', '#C9A8F0'];
   var BOARD_BG = '#8D5B3F', CELL_BG = '#A9714F', CELL_INNER = '#F7E8D0';
-  var JELLY_COLOR = '#B57EDC', HOLE_COLOR = '#4A3020';
+  var JELLY_COLOR = '#6E3D8C', HOLE_COLOR = '#4A3020';
   var CRACK_ACCENT = '#FF7043', JELLY_ACCENT = '#9C6ADE';
   var CRUST_COLOR = '#DCEFF5', SLIME_COLOR = '#7A4E2D', BABY_COLOR = '#FFDFAE', CROW_ACCENT = '#37474F';
   function cellColor(r, c) { var ci = state.colors[r][c]; return ci == null ? '#FFC15E' : PIECE_COLORS[ci % PIECE_COLORS.length]; }
@@ -1024,7 +1096,9 @@
     if (nb && nb.classList) nb.classList.remove('show');
     var rp = document.getElementById('replay');
     if (rp) rp.textContent = '다시 하기';
-    document.getElementById('seed').textContent = 'seed ' + seed;
+    var seedEl = document.getElementById('seed');
+    seedEl.textContent = 'seed ' + seed;
+    if (seedEl.style) seedEl.style.display = /[?&]showseed/.test(location.search) ? 'block' : 'none';
     document.getElementById('score').textContent = '0';
     var bell = document.getElementById('bell');
     bell.classList.remove('used');
@@ -1035,12 +1109,11 @@
     drawTray();
     track.start(currentMode, seed);
     if (!firstPlaceDone) showHint();
-    showOnce('bin', '안 쓰는 조각은 통에 버려요 — 대신 위협이 다가와요');
   }
 
   // ── 레이아웃 (가로·세로 모두 반영 — 작은 창/랩탑 호환) ──
   function resize() {
-    var headerH = 92, trayH = Math.min(120, window.innerHeight * 0.18), chrome = 70;
+    var headerH = 92, trayH = Math.min(120, window.innerHeight * 0.18), chrome = 110; // 검토(10-23): 조각 칸 아래 말풍선 자리 40 추가
     var availW = Math.min(window.innerWidth - 24, 416);
     var availH = window.innerHeight - headerH - trayH - chrome;
     var target = Math.max(Math.min(availW, availH), 224);
@@ -1096,22 +1169,31 @@
     ctx.restore();
   }
 
+  // 검토(10-23): 시럽이 가지맛 조각(파스텔 보라 + 웃는 얼굴)과 거의 같아 보였음 → 진한 시럽 웅덩이 + 아래로 흘러내림, 얼굴 없음
   function drawJellyCell(ctx, x, y, size, t) {
-    var s = size - GAP * 2, cx = x + size / 2, cy = y + size / 2;
-    var wob = Math.sin(t / 260 + x * 0.05) * s * 0.03;
+    var s = size - GAP * 2, x0 = x + GAP, y0 = y + GAP;
+    var wob = Math.sin(t / 380 + x * 0.05) * s * 0.02;
     ctx.save();
-    rrect(ctx, x + GAP - wob / 2, y + GAP + wob, s + wob, s - wob, s * 0.38);
-    ctx.fillStyle = JELLY_COLOR; ctx.globalAlpha = 0.92; ctx.fill();
-    ctx.globalAlpha = 1; ctx.strokeStyle = shade(JELLY_COLOR, -40); ctx.lineWidth = 2; ctx.stroke();
-    rrect(ctx, x + GAP + s * 0.14, y + GAP + s * 0.1 + wob, s * 0.45, s * 0.18, s * 0.09);
-    ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.fill();
-    // 젤리 얼굴 (동글 눈 + 벌린 입)
-    if (s >= 22) {
-      ctx.fillStyle = '#3D2350';
-      ctx.beginPath(); ctx.arc(cx - s * 0.17, cy, s * 0.07, 0, 7); ctx.fill();
-      ctx.beginPath(); ctx.arc(cx + s * 0.17, cy, s * 0.07, 0, 7); ctx.fill();
-      ctx.beginPath(); ctx.arc(cx, cy + s * 0.15, s * 0.09, 0, 7); ctx.fill();
+    rrect(ctx, x0, y0 + wob, s, s - wob, s * 0.22);
+    ctx.fillStyle = JELLY_COLOR; ctx.fill();
+    ctx.strokeStyle = shade(JELLY_COLOR, -35); ctx.lineWidth = 2; ctx.stroke();
+    // 흘러내리는 방울 3개 (아래 가장자리)
+    ctx.fillStyle = JELLY_COLOR;
+    var drips = [[0.22, 0.16], [0.52, 0.26], [0.8, 0.12]];
+    for (var d = 0; d < drips.length; d++) {
+      var dx = x0 + s * drips[d][0], len = s * (drips[d][1] + 0.04 * Math.sin(t / 500 + d));
+      ctx.beginPath(); ctx.moveTo(dx - s * 0.07, y0 + s - 2);
+      ctx.quadraticCurveTo(dx - s * 0.06, y0 + s + len, dx, y0 + s + len);
+      ctx.quadraticCurveTo(dx + s * 0.06, y0 + s + len, dx + s * 0.07, y0 + s - 2);
+      ctx.closePath(); ctx.fill();
     }
+    // 끈적한 광택 줄
+    ctx.strokeStyle = 'rgba(255,255,255,.45)'; ctx.lineWidth = Math.max(2, s * 0.07); ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(x0 + s * 0.2, y0 + s * 0.24 + wob); ctx.quadraticCurveTo(x0 + s * 0.45, y0 + s * 0.14 + wob, x0 + s * 0.68, y0 + s * 0.26 + wob); ctx.stroke();
+    // 기포
+    ctx.fillStyle = 'rgba(255,255,255,.28)';
+    ctx.beginPath(); ctx.arc(x0 + s * 0.3, y0 + s * 0.62, s * 0.07, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.arc(x0 + s * 0.66, y0 + s * 0.54, s * 0.05, 0, 7); ctx.fill();
     ctx.restore();
   }
 
@@ -1292,7 +1374,7 @@
     var x = PAD + th.c * CS, y = PAD + th.r * CS, s = CS - GAP * 2;
     var prog = Math.max(0, Math.min(1, (C.COUNTDOWN - th.countdown) / C.COUNTDOWN)); // 0=여유 → 1=임박
     var pulse = 0.55 + 0.45 * Math.sin(t / (240 - prog * 150)); // 임박할수록 빠른 맥동
-    var accent = th.type === 'crack' ? CRACK_ACCENT : th.type === 'crust' ? '#7FB8D4' : th.type === 'slime' ? SLIME_COLOR : th.type === 'crow' ? CROW_ACCENT : JELLY_ACCENT;
+    var accent = th.type === 'crack' ? CRACK_ACCENT : th.type === 'crust' ? '#7FB8D4' : th.type === 'slime' ? SLIME_COLOR : th.type === 'crow' || th.type === 'peck' ? CROW_ACCENT : JELLY_ACCENT;
     ctx.save();
     if (th.type === 'crack') {
       // 구멍 프리뷰: 점점 어두워지고 균열이 자람
@@ -1315,6 +1397,13 @@
       var hgt2 = s * (0.2 + prog * 0.65);
       rrect(ctx, x + GAP + 2, y + GAP + (s - hgt2), s - 4, hgt2, Math.min(hgt2 * 0.4, s * 0.2));
       ctx.fillStyle = SLIME_COLOR; ctx.globalAlpha = 0.25 + prog * 0.45; ctx.fill();
+      ctx.globalAlpha = 1;
+    } else if (th.type === 'peck') {
+      // 방벽 쪼기: 내 블록에 부리 자국이 늘어남 (결과 미리보기 = 블록이 사라짐)
+      ctx.globalAlpha = 0.3 + prog * 0.6; ctx.fillStyle = CROW_ACCENT;
+      for (var pk = 0; pk < 1 + Math.round(prog * 3); pk++) {
+        ctx.beginPath(); ctx.moveTo(x + s * (0.3 + pk * 0.15), y + s * 0.3); ctx.lineTo(x + s * (0.38 + pk * 0.15), y + s * 0.55); ctx.lineTo(x + s * (0.22 + pk * 0.15), y + s * 0.5); ctx.closePath(); ctx.fill();
+      }
       ctx.globalAlpha = 1;
     } else if (th.type === 'crow') {
       // 까마귀 그림자가 짙어짐 — 아기를 노림
@@ -1599,7 +1688,8 @@
     jelly: '끈적 시럽이 칸을 채워요 — 줄에 넣으면 지워져요',
     crust: '설탕이 젤리를 굳혀요 — 옆 줄을 지우면 깨져요',
     slime: '초코 슬라임이 번져요 — 옆 줄을 지우면 잡아요',
-    crow: '도둑 까마귀가 소중한 걸 가져가요 — 예고 칸을 덮거나 먼저 구해요'
+    crow: '도둑 까마귀가 소중한 걸 가져가요 — 예고 칸을 덮거나 먼저 구해요',
+    peck: '까마귀가 방벽을 쪼아요 — 그 젤리를 먼저 지우면 헛수고예요'
   };
   var ITEM_COPY = {};
   ITEM_COPY[12] = '폭탄을 받았어요 — 3×3을 부숴요';
@@ -1615,11 +1705,12 @@
     // 세션13: 임무/디펜스 진행 — 1순위 신호
     if (state.mode === 'stage' && state.goal) {
       var g = state.goal;
-      if (g.type === 'color') parts.push('🎯 ' + FLAVORS[g.color] + ' ' + Math.min(state.colorCleared[g.color], g.n) + '/' + g.n);
+      if (g.type === 'color') parts.push('🎯 ' + FLAVOR_DOT[g.color] + FLAVORS[g.color] + ' ' + Math.min(state.colorCleared[g.color], g.n) + '/' + g.n);
+      else if (g.type === 'colors') parts.push('🎯 ' + g.parts.map(function (pt) { return FLAVOR_DOT[pt[0]] + FLAVORS[pt[0]] + ' ' + Math.min(state.colorCleared[pt[0]], pt[1]) + '/' + pt[1]; }).join(' · '));
       else if (g.type === 'rescue') parts.push('🎯 구출 ' + Math.min(state.totalRescued, g.n) + '/' + g.n);
       else if (g.type === 'score') parts.push('🎯 ' + state.score + '/' + g.score + '점 · ' + Math.max(0, g.moves - state.placements) + '수');
     } else if (state.mode === 'defense') {
-      parts.push('🛡️ 까마귀 ' + state.crowsDefused + '마리 방어');
+      parts.push('🛡️ ' + (state.wave ? state.wave + '번째 습격 · ' : '') + '까마귀 ' + state.crowsDefused + '마리 방어');
     }
     for (var r = 0; r < C.N; r++) for (var c = 0; c < C.N; c++) if (state.grid[r][c] === C.BABY) hasBaby = true;
     if (hasBaby && state.mode !== 'defense') parts.push('🐣 지켜요');
@@ -1637,6 +1728,7 @@
 
   // ── 세션9: 괴식 젤리 아이덴티티 (작가 확정 — 코믹 바이럴). 색 = 맛. clean-room(외부 IP 명칭 미사용).
   var FLAVORS = ['딸기맛', '귀지맛', '코딱지맛', '치약맛', '가지맛'];
+  var FLAVOR_DOT = ['🔴', '🟠', '🟢', '🔵', '🟣']; // 검토(10-23): 임무에 색 견본 — 맛 이름만으론 색을 모름
 
   // ── 세션9: 소중한 것 사진 (사람+반려동물, 최대 2장) — 100% 온디바이스(canvas 가공, 서버 전송 0 = 개인정보 소명 유지)
   var photos = [];
@@ -1674,7 +1766,9 @@
     }
   }
   function addFloat(r, c, text, color, delayMs) {
-    fx.push({ kind: 'f', x: PAD + c * CS + CS / 2, y: PAD + r * CS, text: text, color: color, t0: performance.now() + (delayMs || 0), life: 900 });
+    var t0 = performance.now() + (delayMs || 0), stack = 0;
+    for (var k = 0; k < fx.length; k++) if (fx[k].kind === 'f' && fx[k].r === r && fx[k].c === c && Math.abs(fx[k].t0 - t0) < 500) stack++; // 검토(10-23): 같은 칸 숫자 겹침 → 위로 쌓기
+    fx.push({ kind: 'f', r: r, c: c, x: PAD + c * CS + CS / 2, y: PAD + r * CS - stack * 22, text: text, color: color, t0: t0, life: 900 });
   }
   function drawFx(t) {
     for (var i = fx.length - 1; i >= 0; i--) {
@@ -1692,8 +1786,10 @@
         bctx.globalAlpha = 1 - p * p;
         bctx.font = 'bold 20px Jua, sans-serif'; bctx.textAlign = 'center';
         bctx.fillStyle = f.color; bctx.strokeStyle = '#FFFDF7'; bctx.lineWidth = 4; bctx.lineJoin = 'round';
-        bctx.strokeText(f.text, f.x, f.y - p * 34);
-        bctx.fillText(f.text, f.x, f.y - p * 34);
+        var tw = bctx.measureText ? (bctx.measureText(f.text).width || 0) : 0, bw = CS * C.N + PAD * 2; // 검토(10-23): 판 가장자리 숫자 잘림 방지
+        var fxX = Math.max(tw / 2 + 4, Math.min(bw - tw / 2 - 4, f.x)), fxY = Math.max(18, f.y - p * 34);
+        bctx.strokeText(f.text, fxX, fxY);
+        bctx.fillText(f.text, fxX, fxY);
         bctx.globalAlpha = 1;
       }
     }
@@ -1838,6 +1934,17 @@
     var ev = C.place(state, slot, r, c);
     if (!ev) return;
     juice(ev);
+    if (!state.over && trayHasStuckPiece()) showOnce('bin', '놓을 곳 없는 조각은 통에 버려요 — 대신 위협이 1칸 다가와요');
+  }
+  function trayHasStuckPiece() {
+    for (var i = 0; i < 3; i++) {
+      var sh = state.tray[i];
+      if (sh == null) continue;
+      var can = false;
+      for (var r = 0; r < C.N && !can; r++) for (var c = 0; c < C.N && !can; c++) if (C.canPlace(state, sh, r, c)) can = true;
+      if (!can) return true;
+    }
+    return false;
   }
 
   // 버리기 (세션5, 작가 확정): 통에 드래그 → 조각 소멸 + 위협 1틱 전진
@@ -1879,11 +1986,11 @@
     directDef.forEach(function (p) { addSparkles(p[0], p[1], '#FFD700', 10); addFloat(p[0], p[1], '+25', '#FF9800'); sfx('defuse'); });
     ev.fired.forEach(function (p) {
       shakeT = 300;
-      addSparkles(p[0], p[1], p[2] === 'crack' ? '#5D4037' : p[2] === 'crust' ? CRUST_COLOR : p[2] === 'slime' ? SLIME_COLOR : p[2] === 'crow' ? CROW_ACCENT : JELLY_COLOR, 8);
+      addSparkles(p[0], p[1], p[2] === 'crack' ? '#5D4037' : p[2] === 'crust' ? CRUST_COLOR : p[2] === 'slime' ? SLIME_COLOR : p[2] === 'crow' || p[2] === 'peck' ? CROW_ACCENT : JELLY_COLOR, 8);
       sfx(p[2] === 'crust' ? 'crackle' : p[2] === 'slime' ? 'blub' : 'fire'); buzz(80);
     });
     ev.spawned.forEach(function (p) {
-      sfx(p[2] === 'crow' ? 'caw' : 'spawn');
+      sfx(p[2] === 'crow' || p[2] === 'peck' ? 'caw' : 'spawn');
       showOnce('th-' + p[2], TH_COPY[p[2]]);
       if (p[2] === 'crow') { vignetteT = 700; setMascot('worried', 1600); } // 까마귀 가시성 (세션5)
     });
@@ -1891,7 +1998,11 @@
     if (ev.broke) ev.broke.forEach(function (p) { addSparkles(p[0], p[1], p[2] === 'crust' ? CRUST_COLOR : SLIME_COLOR, 8); addFloat(p[0], p[1], p[2] === 'crust' ? '+15' : '+10', '#8D6E63'); });
     if (ev.rescued > 0) { runRescued += ev.rescued; sfx('rescue'); buzz([60, 40, 80]); addFloat(3, 3, '+100', '#FF6E9C'); setMascot('cheer', 1400); }
     if (state.combo > runMaxCombo) runMaxCombo = state.combo;
-    if (ev.babySpawn) { cellPop[ev.babySpawn[0] + ',' + ev.babySpawn[1]] = t; addSparkles(ev.babySpawn[0], ev.babySpawn[1], BABY_COLOR, 8); sfx('grant'); showOnce('baby', '아기 쿠키가 나왔어요 — 줄에 넣으면 구해져요'); }
+    if (ev.waveStart) {
+      showToast(ev.waveStart + '번째 습격! 까마귀가 몰려와요' + (ev.waveBonus ? ' (버틴 보너스 +' + ev.waveBonus + ')' : ''));
+      vignetteT = 700; setMascot('worried', 1600);
+    }
+    if (ev.babySpawn) { cellPop[ev.babySpawn[0] + ',' + ev.babySpawn[1]] = t; addSparkles(ev.babySpawn[0], ev.babySpawn[1], BABY_COLOR, 8); sfx('grant'); showOnce('baby', '소중한 것이 나왔어요 — 줄에 넣으면 구해져요'); }
     if (ev.slimeSpread) { addSparkles(ev.slimeSpread[0], ev.slimeSpread[1], SLIME_COLOR, 5); sfx('blub'); }
     if (ev.chain && ev.chain.length) {
       // 연쇄(과제 B): 단계별 시차 — 클리어 반짝 → 낙하 애니 → 착지 해체 → 콤보 배수 플로트(숫자·기호만, 텍스트 0)
@@ -2097,7 +2208,8 @@
   function unlockedStage() { return Math.min(parseInt(storeGet('cp-stage') || '0', 10) || 0, C.STAGES.length - 1); }
   function stageGoalDesc(i) {
     var g = C.STAGES[i].goal;
-    if (g.type === 'color') return FLAVORS[g.color] + ' 젤리 ' + g.n + '개 부수기';
+    if (g.type === 'color') return FLAVOR_DOT[g.color] + FLAVORS[g.color] + ' 젤리 ' + g.n + '개 부수기';
+    if (g.type === 'colors') return g.parts.map(function (pt) { return FLAVOR_DOT[pt[0]] + FLAVORS[pt[0]] + ' ' + pt[1] + '개'; }).join(' + ') + ' 부수기';
     if (g.type === 'rescue') return '소중한 것 ' + g.n + '번 구출하기';
     return g.moves + '수 안에 ' + g.score + '점 만들기';
   }
@@ -2150,8 +2262,16 @@
       if (rp2) rp2.textContent = (state.stage + 1 < C.STAGES.length) ? '다음 스테이지' : '다시 하기';
     }
     else if (state.overCause === 'moves') cause = '수를 다 썼어요 — 다시 도전해요';
-    else if (state.overCause === 'baby') cause = photoImgs.length ? '소중한 것이 코딱지맛 젤리 범벅이 됐어요…' : '아기 쿠키를 지키지 못했어요';
-    else cause = '예고된 칸을 비우지 못했어요 (구멍 ' + C.countCells(state, C.HOLE) + '개)';
+    else if (state.overCause === 'baby') cause = photoImgs.length ? '소중한 것이 코딱지맛 젤리 범벅이 됐어요…' : '소중한 것을 지키지 못했어요';
+    else {
+      // 검토(10-23): 판이 꽉 차서 진 판에 '예고된 칸을 비우지 못했어요 (구멍 0개)'가 뜨던 오류 — 실제로 막은 칸을 센다
+      var holesN = C.countCells(state, C.HOLE), stickyN = C.countCells(state, C.JELLY) + C.countCells(state, C.CRUST) + C.countCells(state, C.SLIME);
+      var why = [];
+      if (holesN) why.push('구멍 ' + holesN);
+      if (stickyN) why.push('시럽·설탕 ' + stickyN);
+      // 작가 결정(10-23): 지는 이유 = 놓친 위협. 구멍·시럽·설탕은 모두 막지 못한 예고가 남긴 칸이다
+      cause = '놓을 자리가 없어요' + (why.length ? '\n놓친 위협이 남긴 칸: ' + why.join(' · ') : '');
+    }
     document.getElementById('overcause').textContent = cause;
     // 세션7: 판 스탯 + 베스트 스코어(로컬 저장) + 신기록 배지
     var best = parseInt(storeGet('cp-best') || '0', 10) || 0;

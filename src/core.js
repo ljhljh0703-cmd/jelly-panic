@@ -52,26 +52,29 @@
   // 난이도 커브 (세션3·4) — 배치 수 기반 고정 커브. 성과 기반 몰래 보정 아님 = Active DDA 계약 준수. 티어 핍으로 상시 노출.
   // 세션4: 위협 종류도 티어별 순차 등장(캔디크러시 방식) — 첫 10초 이해(Pillar 2)를 지키면서 뒤로 갈수록 몰아침.
   // 세션12 (작가 피드백 "선택 강제"): 티어3+는 스폰 이벤트당 위협 2개 — 전부 못 막는 상황을 의도적으로 생성 (까마귀 잡으면 균열을 포기하는 삼중 판단)
+  // 검토(10-23, 작가 결정 「위협을 놓쳐서 지게」): 설탕(굳히기) 비중↓·균열 비중↑. 예고 주기는 그대로.
+  // 익숙한 플레이 자동 250판: 설탕 발동 판당 15.4 → 5.8회, 진 판의 구멍 1 → 2칸, 시럽·설탕 7 → 4칸
   function difficulty(placements) {
-    if (placements >= 70) return { tier: 4, spawnEvery: 2, maxThreats: 5, spawnCount: 2, weights: [['crack', 0.3], ['jelly', 0.15], ['crust', 0.3], ['slime', 0.25]], crowChance: 0.45 };
-    if (placements >= 40) return { tier: 3, spawnEvery: 2, maxThreats: 4, spawnCount: 2, weights: [['crack', 0.35], ['jelly', 0.2], ['crust', 0.25], ['slime', 0.2]], crowChance: 0.35 };
-    if (placements >= 20) return { tier: 2, spawnEvery: 3, maxThreats: 3, spawnCount: 1, weights: [['crack', 0.4], ['jelly', 0.25], ['crust', 0.35]], crowChance: 0.25 }; // 세션5: 까마귀 조기 등장
+    if (placements >= 70) return { tier: 4, spawnEvery: 2, maxThreats: 5, spawnCount: 2, weights: [['crack', 0.55], ['jelly', 0.15], ['crust', 0.12], ['slime', 0.18]], crowChance: 0.45 };
+    if (placements >= 40) return { tier: 3, spawnEvery: 2, maxThreats: 4, spawnCount: 2, weights: [['crack', 0.6], ['jelly', 0.15], ['crust', 0.1], ['slime', 0.15]], crowChance: 0.35 };
+    if (placements >= 20) return { tier: 2, spawnEvery: 3, maxThreats: 3, spawnCount: 1, weights: [['crack', 0.65], ['jelly', 0.2], ['crust', 0.15]], crowChance: 0.25 };
     return { tier: 1, spawnEvery: 3, maxThreats: 2, spawnCount: 1, weights: [['crack', 0.6], ['jelly', 0.4]], crowChance: 0 };
   }
 
   // ── 세션13: 스테이지 임무 (작가 확정 — 쿠키런 모험의 탑 방식). 시간 목표는 턴제 정합상 "수 제한"으로 구현.
   // 세션14 (작가): 색 임무 = 색 조합 or 단일색 대량 — 마카롱 원샷 봉쇄
+  // 검토(10-23): 7에서 벽(16%)·8·9에서 다시 쉬워지던 곡선 → 오르막으로. 익숙한 플레이 자동 200판 깨는 비율 99 100 100 95 93 97 91 94 74 63
   var STAGES = [
-    { goal: { type: 'colors', parts: [[2, 8], [0, 8]] }, diffBoost: 0 },     // 1. 코딱지맛 8 + 딸기맛 8
-    { goal: { type: 'rescue', n: 1 }, diffBoost: 18 },                       // 2. 소중한 것 1 구출
-    { goal: { type: 'score', score: 250, moves: 25 }, diffBoost: 10 },       // 3. 25수 안에 250점
-    { goal: { type: 'colors', parts: [[4, 12], [3, 12]] }, diffBoost: 15 },  // 4. 가지맛 12 + 치약맛 12
-    { goal: { type: 'rescue', n: 2 }, diffBoost: 24 },                       // 5. 구출 2
-    { goal: { type: 'score', score: 500, moves: 35 }, diffBoost: 25 },       // 6. 35수 안에 500점
-    { goal: { type: 'colors', parts: [[2, 50]] }, diffBoost: 35 },           // 7. 코딱지맛 50개 (단일 대량)
-    { goal: { type: 'rescue', n: 3 }, diffBoost: 44 },                       // 8. 구출 3
-    { goal: { type: 'score', score: 900, moves: 45 }, diffBoost: 50 },       // 9. 45수 안에 900점
-    { goal: { type: 'colors', parts: [[0, 20], [1, 20], [2, 20]] }, diffBoost: 62 } // 10. 3색 조합
+    { goal: { type: 'colors', parts: [[2, 6], [0, 6]] }, diffBoost: 0 },   // 1. 코딱지맛 6 + 딸기맛 6 (첫 판 성공 쉽게)
+    { goal: { type: 'rescue', n: 1 }, diffBoost: 18 },                     // 2. 소중한 것 1 구출
+    { goal: { type: 'score', score: 250, moves: 25 }, diffBoost: 10 },     // 3. 25수 안에 250점
+    { goal: { type: 'colors', parts: [[4, 12], [3, 12]] }, diffBoost: 15 }, // 4. 가지맛 12 + 치약맛 12
+    { goal: { type: 'rescue', n: 2 }, diffBoost: 40 },                     // 5. 구출 2
+    { goal: { type: 'score', score: 650, moves: 30 }, diffBoost: 30 },     // 6. 30수 안에 650점
+    { goal: { type: 'rescue', n: 3 }, diffBoost: 55 },                     // 7. 구출 3
+    { goal: { type: 'score', score: 1100, moves: 40 }, diffBoost: 52 },    // 8. 40수 안에 1100점
+    { goal: { type: 'colors', parts: [[2, 20]] }, diffBoost: 30 },         // 9. 코딱지맛 20개 (단일 대량)
+    { goal: { type: 'colors', parts: [[0, 15], [1, 15], [2, 15]] }, diffBoost: 62 }  // 10. 3색 조합
   ];
   var WAVE_EVERY = 10; // 세션14: 디펜스 웨이브 주기 (배치 수)
   var DEFENSE_BABY = [3, 4]; // 세션13: 디펜스 모드 — 중앙 영구 고정 보호 대상 (작가 예시)
@@ -593,7 +596,7 @@
     var type = null;
     var baby = findBaby(state);
     // 세션13 디펜스: 까마귀 웨이브 — 확률 0.6, 동시 2마리 (일반 모드: diff 확률, 동시 1마리)
-    var crowChance = state.mode === 'defense' ? 0.6 : diff.crowChance;
+    var crowChance = state.mode === 'defense' ? 0.35 : diff.crowChance; // 검토(10-23): 0.6 → 0.35, 처음 하는 사람이 5수 만에 지던 것 완화
     var crowCap = state.mode === 'defense' ? 2 : 1;
     var crowCount = 0;
     for (var ci = 0; ci < state.threats.length; ci++) if (state.threats[ci].type === 'crow') crowCount++;
