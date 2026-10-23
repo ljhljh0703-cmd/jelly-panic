@@ -15,9 +15,12 @@ npx ait deploy       # 콘솔 API 키가 있어야 함 (ait token add)
 - 안드로이드 뒤로가기: 열린 창(도감·모드)을 먼저 닫고, 없으면 미니앱을 닫는다. 「종료하기」 버튼도 미니앱 닫기.
 - 상단 닫기 버튼과 겹치지 않게 토스가 알려 주는 안전 영역만큼 위를 띄운다.
 - 진동은 토스 햅틱으로.
+- 게임 기록 사건(판 시작·끝 등)을 토스 행동 기록(`eventLog`)에도 남긴다.
+- 끝없이 모드 점수를 토스 게임센터 순위에 올리고, 판 끝 「🏆 순위」로 순위 화면을 연다.
+- 「공유하기」는 토스 공유 시트로 결과 한 줄과 토스 안에서 이 게임을 여는 주소(`intoss://<appName>?src=share`)를 보낸다.
 
 올리기 전에 할 일
-- [ ] 콘솔에서 앱 이름을 정하고 `apps-in-toss.config.ts` 의 `appName` 을 같게
+- [ ] 콘솔에서 앱 이름을 정하고 `apps-in-toss.config.ts` 의 `appName`, `bridge.js` 의 `APP_NAME` 을 같게
 - [ ] 게임 등급 증빙 (구글 플레이 자체등급 또는 게임물관리위원회 등급분류증명서)
-- [ ] 수집 서버 접속 허용 목록에 `https://<appName>.apps.tossmini.com`, `https://<appName>.private-apps.tossmini.com` 추가
+- [ ] 수집 서버 접속 허용 목록에 `https://<appName>.apps.tossmini.com`, `https://<appName>.private-apps.tossmini.com` 추가 (광고 공장 저장소 수집기 PR에 jelly-panic 이름으로 넣어 둠. 이름이 다르면 Vercel 설정 `ALLOW_ORIGIN` 만 고침)
 - [ ] 콘솔 「토스앱 테스트」 QR로 실제 토스 앱에서 1번 이상 실행 (검토 요청 조건)
