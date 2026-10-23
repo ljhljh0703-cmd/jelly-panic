@@ -23,7 +23,11 @@
   var BUILD = '20261024'; // 공개판 번호 — 반반 비교·고친 전후 비교에 쓴다
   // 반반 비교: id 를 넣으면 B 그룹 기기(기기마다 고정)만 B 규칙으로 판을 연다. id 가 비면 두 그룹 똑같음.
   // 내기 전에 판정 기준 한 줄을 적는다(무엇이 몇 % 오르면 계속 / 그대로면 되돌림). 기록의 ver 에 '-id' 가 붙는다.
+  // 규칙 후보(B = core tune 묶음) 말고 화면 안내 후보는 id 만 넣는다(B 는 null): 'crowline' 까마귀 → 소중한 것 선 긋기,
+  // 'firsthint' 처음 뜨는 위협 예고 칸 반짝임·손가락(기기마다 처음 세 번), 'dailyfirst' 두 번째 방문부터 오늘의 임무로 바로 시작.
+  // 눈으로 볼 때는 ?abforce=<이름> (그 탭은 기록을 보내지 않음)
   var EXPERIMENT = { id: '', B: null };
+  var AB_FORCE = (/[?&]abforce=([a-z]{1,16})/.exec(location.search) || [])[1] || '';
   var TRACK_URL = 'https://jelly-panic-collector.vercel.app/api/collect';
   var track = (function () {
     var q = location.search || '';
@@ -31,7 +35,7 @@
     var src = pick(/[?&]src=([A-Za-z0-9_-]{1,24})/) || 'direct', ad = pick(/[?&]ad=([A-Za-z0-9_-]{1,32})/);
     var seedFromUrl = /[?&]seed=\d+/.test(q);
     var nav = window.navigator || {};
-    var off = nav.doNotTrack === '1' || nav.globalPrivacyControl === true || /[?&]notrack\b/.test(q);
+    var off = nav.doNotTrack === '1' || nav.globalPrivacyControl === true || /[?&]notrack\b/.test(q) || !!AB_FORCE;
     var sid = Math.random().toString(36).slice(2, 10), n = 0, t0 = Date.now(), queue = [], sent = [];
     var did = '';
     if (!off) {
@@ -90,6 +94,8 @@
 
   var currentMode = 'classic', currentStage = 0; // 세션13: 모드 상태
   function abTune() { return EXPERIMENT.id && track.ab === 'B' ? EXPERIMENT.B : null; }
+  function abUi(name) { return AB_FORCE === name || (EXPERIMENT.id === name && track.ab === 'B'); }
+  var guide = null; // 'firsthint': {r, c, type} 가리키는 위협 예고 칸
   // ── 오늘의 임무 (2026-10-24 작가 결정: 날마다 임무 하나, 도전 무제한, 최고 기록 = 가장 적은 수로 깬 기록) ──
   function kstKey(ms) { var d = new Date((ms || Date.now()) + 9 * 3600 * 1000); return d.getUTCFullYear() + ('0' + (d.getUTCMonth() + 1)).slice(-2) + ('0' + d.getUTCDate()).slice(-2); } // 모두 같은 날 같은 판: 한국 시간 기준
   function dayLabel(key) { return (+key.slice(4, 6)) + '월 ' + (+key.slice(6, 8)) + '일'; }
@@ -111,7 +117,7 @@
       seed = state.seed;
       var dr = dailyRec(dk); dr.tries++; dailySave(dk, dr);
     } else state = C.newGame(seed, { mode: currentMode, stage: currentStage, tune: abTune() });
-    fx = []; cellPop = {}; fallAnim = {}; shakeT = 0;
+    fx = []; cellPop = {}; fallAnim = {}; shakeT = 0; guide = null;
     runRescued = 0; runMaxCombo = 0;
     var nb = document.getElementById('newbest');
     if (nb && nb.classList) nb.classList.remove('show');
@@ -520,6 +526,57 @@
   }
 
   // ── 보드 그리기 ──
+  // 반반 비교 'crowline': 까마귀 예고 칸에서 노리는 소중한 것까지 점선 + 「이 칸을 덮어요」
+  function drawCrowLines(t) {
+    var pulse = 0.55 + 0.45 * Math.sin(t / 160);
+    for (var i = 0; i < state.threats.length; i++) {
+      var th = state.threats[i];
+      if (th.type !== 'crow') continue;
+      var cx = PAD + th.c * CS + CS / 2, cy = PAD + th.r * CS + CS / 2;
+      bctx.save();
+      for (var dr = -1; dr <= 1; dr++) for (var dc = -1; dc <= 1; dc++) {
+        var br = th.r + dr, bc = th.c + dc;
+        if ((dr || dc) && br >= 0 && bc >= 0 && br < C.N && bc < C.N && state.grid[br][bc] === C.BABY) {
+          bctx.strokeStyle = 'rgba(214,40,57,' + (0.5 + 0.4 * pulse) + ')'; bctx.lineWidth = 3; bctx.lineCap = 'round';
+          if (bctx.setLineDash) bctx.setLineDash([5, 5]);
+          bctx.beginPath(); bctx.moveTo(cx, cy); bctx.lineTo(PAD + bc * CS + CS / 2, PAD + br * CS + CS / 2); bctx.stroke();
+        }
+      }
+      if (bctx.setLineDash) bctx.setLineDash([]);
+      var s = CS - GAP * 2;
+      rrect(bctx, PAD + th.c * CS + GAP - 2, PAD + th.r * CS + GAP - 2, s + 4, s + 4, s * 0.3);
+      bctx.strokeStyle = 'rgba(214,40,57,' + (0.45 + 0.5 * pulse) + ')'; bctx.lineWidth = 3; bctx.stroke();
+      pillLabel('이 칸을 덮어요', cx, PAD + th.r * CS, th.r === 0 ? (th.c < C.N / 2 ? 'right' : 'left') : null);
+      bctx.restore();
+    }
+  }
+  // 반반 비교 'firsthint': 처음 뜬 위협 예고 칸을 반짝이고 손가락으로 가리킴
+  function drawGuide(t) {
+    var still = state.threats.some(function (th) { return th.r === guide.r && th.c === guide.c && th.type === guide.type; });
+    if (!still) { guide = null; return; }
+    var x = PAD + guide.c * CS, y = PAD + guide.r * CS, s = CS - GAP * 2, pulse = 0.5 + 0.5 * Math.sin(t / 150);
+    bctx.save();
+    rrect(bctx, x + GAP - 3, y + GAP - 3, s + 6, s + 6, s * 0.32);
+    bctx.strokeStyle = 'rgba(255,193,7,' + (0.55 + 0.45 * pulse) + ')'; bctx.lineWidth = 4; bctx.stroke();
+    bctx.font = Math.round(CS * 0.62) + 'px sans-serif'; bctx.textAlign = 'center'; bctx.textBaseline = 'middle';
+    var below = guide.r < C.N - 1, fy = below ? y + CS + CS * 0.35 + pulse * 5 : y - CS * 0.35 - pulse * 5;
+    bctx.fillText(below ? '👆' : '👇', x + CS / 2 + CS * 0.12, fy);
+    pillLabel('젤리로 덮으면 막아요', x + CS / 2, y, guide.r === 0 ? 'under' : null);
+    bctx.restore();
+  }
+  // where: null = 칸 위, 'under' = 칸 아래, 'right'/'left' = 같은 줄 옆(맨 윗줄에서 아래 칸을 가리지 않게)
+  function pillLabel(text, cx, cellTop, where) {
+    var fs = Math.max(11, Math.round(CS * 0.3));
+    bctx.font = '700 ' + fs + 'px sans-serif';
+    var w = bctx.measureText(text).width + fs * 1.1, h = fs * 1.7, side = CS * C.N + PAD * 2;
+    var lx = where === 'right' ? cx + CS / 2 + 2 : where === 'left' ? cx - CS / 2 - 2 - w : cx - w / 2;
+    lx = Math.max(4, Math.min(side - w - 4, lx));
+    var ly = where === 'under' ? cellTop + CS + 2 : where ? cellTop + (CS - h) / 2 : cellTop - h - 2;
+    rrect(bctx, lx, ly, w, h, h / 2); bctx.fillStyle = 'rgba(40,24,30,.86)'; bctx.fill();
+    bctx.fillStyle = '#FFF'; bctx.textAlign = 'center'; bctx.textBaseline = 'middle';
+    bctx.fillText(text, lx + w / 2, ly + h / 2 + 1);
+  }
+
   function drawBoard(t) {
     var side = CS * C.N + PAD * 2;
     bctx.clearRect(0, 0, side, side);
@@ -560,6 +617,8 @@
     }
     // 위협 예고
     for (var i = 0; i < state.threats.length; i++) drawThreat(bctx, state.threats[i], t);
+    if (abUi('crowline')) drawCrowLines(t);
+    if (guide) drawGuide(t);
     // 드래그 고스트 (배치 미리보기)
     if (drag && drag.target) {
       var tg = drag.target, valid = tg.valid;
@@ -1075,6 +1134,10 @@
     ev.spawned.forEach(function (p) {
       sfx(p[2] === 'crow' || p[2] === 'peck' ? 'caw' : 'spawn');
       showOnce('th-' + p[2], TH_COPY[p[2]]);
+      if (!guide && abUi('firsthint') && p[2] !== 'crust' && p[2] !== 'peck') {
+        var fh = parseInt(storeGet('cp-fh') || '0', 10) || 0;
+        if (fh < 3) { guide = { r: p[0], c: p[1], type: p[2] }; storeSet('cp-fh', String(fh + 1)); }
+      }
       if (p[2] === 'crow') { vignetteT = 700; setMascot('worried', 1600); } // 까마귀 가시성 (세션5)
     });
     if (ev.fizzled) ev.fizzled.forEach(function (p) { addSparkles(p[0], p[1], '#C9C9C9', 5); }); // 설탕 예고 소멸 포프
@@ -1469,7 +1532,11 @@
 
   resize();
   window.addEventListener('resize', function () { resize(); drawTray(); if (!firstPlaceDone) showHint(); });
+  var revisit = !!(storeGet('cp-visited') || storeGet('cp-best')); // 전에 한 판이라도 끝낸 기기도 다시 온 것으로
+  storeSet('cp-visited', '1');
+  if (revisit && abUi('dailyfirst') && !/[?&]seed=\d+/.test(location.search) && dailyRec(kstKey()).tries === 0) currentMode = 'daily';
   reset(urlSeed());
+  if (currentMode === 'daily') showToast('오늘의 임무: ' + goalDesc(state.goal) + ' — 적은 수로 깰수록 좋아요');
   requestAnimationFrame(loop);
 
   // [RELEASE-STRIP-START] — 아래 블록은 출시 빌드에서 자동 제거됨 (개발·검증·소재 촬영 전용)
