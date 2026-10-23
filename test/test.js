@@ -578,6 +578,31 @@ t('T38', function () {
   ok(s.grid[peck.r] && s.grid[peck.r][peck.c] === C.EMPTY, 'T38b 발동 → 방벽 블록 파괴(자리 열림)');
 });
 
+// T39. 오늘의 임무 (2026-10-24): 같은 날 = 같은 판·같은 임무, 날이 바뀌면 바뀜, 임무 달성 = 완수
+t('T39', function () {
+  var a = C.daily('20261024'), b = C.daily('20261024'), c = C.daily('20261025');
+  ok(a.seed === b.seed && JSON.stringify(a.goal) === JSON.stringify(b.goal), 'T39a 같은 날짜 → 같은 시작 판·같은 임무');
+  var diff = 0;
+  for (var d = 1; d <= 28; d++) { var k = '202611' + ('0' + d).slice(-2); if (C.daily(k).seed !== a.seed) diff++; }
+  ok(diff === 28 && c.seed !== a.seed, 'T39b 날이 바뀌면 시작 판이 바뀜');
+  var kinds = {};
+  for (var d2 = 0; d2 < 60; d2++) kinds[C.daily(String(20261101 + d2)).template] = 1;
+  ok(Object.keys(kinds).length === C.DAILY_TEMPLATES.length, 'T39c 60일 안에 임무 틀이 전부 한 번 이상 나옴');
+  var s = C.newGame(999, { mode: 'daily', daily: a });
+  var s2 = C.newGame(1, { mode: 'daily', daily: a });
+  ok(s.seed === a.seed && s2.seed === a.seed && JSON.stringify(s.tray) === JSON.stringify(s2.tray), 'T39d 넘긴 seed와 상관없이 그날 판으로 시작');
+  s.goal = { type: 'score', score: 10, moves: 99 }; s.score = 10; s.tray = [0, 0, 0];
+  C.place(s, 0, 0, 0);
+  ok(s.over && s.overCause === 'clear', 'T39e 오늘의 임무 달성 → 완수 종료');
+  var bad = false;
+  for (var d3 = 0; d3 < 60; d3++) {
+    var dl = C.daily(String(20261101 + d3));
+    if (dl.goal.type === 'colors') dl.goal.parts.forEach(function (p) { if (p[0] < 0 || p[0] >= C.NCOLORS) bad = true; });
+    if (dl.goal.type === 'colors' && dl.goal.parts.length === 2 && dl.goal.parts[0][0] === dl.goal.parts[1][0]) bad = true;
+  }
+  ok(!bad, 'T39f 색 임무의 맛은 서로 다른 두 맛, 범위 안');
+});
+
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail > 0 ? 1 : 0);
 
