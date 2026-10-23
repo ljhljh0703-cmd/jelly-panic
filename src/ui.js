@@ -11,6 +11,45 @@
   var CRUST_COLOR = '#DCEFF5', SLIME_COLOR = '#7A4E2D', BABY_COLOR = '#FFDFAE', CROW_ACCENT = '#37474F';
   function cellColor(r, c) { var ci = state.colors[r][c]; return ci == null ? '#FFC15E' : PIECE_COLORS[ci % PIECE_COLORS.length]; }
 
+
+  // ── 익명 기록 (광고 성과 보기용) ──
+  // 보내는 것: 탭마다 새로 뽑는 무작위 번호, 광고 꼬리표(src·ad), 판 시작·첫 수·판 끝·다시 하기와 그 판의 숫자(점수·놓은 수·걸린 초).
+  // 보내지 않는 것: 이름·사진·기기 식별자·쿠키·저장소 값. 사진을 등록했는지 여부도 보내지 않는다.
+  // 수집 주소(TRACK_URL)가 비어 있으면 아무것도 보내지 않는다. Do Not Track·Global Privacy Control·?notrack 이면 끈다.
+  var TRACK_URL = 'https://jelly-panic-collector.vercel.app/api/collect';
+  var track = (function () {
+    var q = location.search || '';
+    var pick = function (re) { var m = re.exec(q); return m ? m[1] : ''; };
+    var src = pick(/[?&]src=([A-Za-z0-9_-]{1,24})/) || 'direct', ad = pick(/[?&]ad=([A-Za-z0-9_-]{1,32})/);
+    var seedFromUrl = /[?&]seed=\d+/.test(q);
+    var nav = window.navigator || {};
+    var off = nav.doNotTrack === '1' || nav.globalPrivacyControl === true || /[?&]notrack\b/.test(q);
+    var sid = Math.random().toString(36).slice(2, 10), n = 0, t0 = Date.now(), queue = [], sent = [];
+    var game = { t: t0, moved: false };
+    function flush() {
+      if (off || !TRACK_URL || !queue.length) return;
+      var body = JSON.stringify(queue.splice(0, queue.length));
+      try { if (nav.sendBeacon && nav.sendBeacon(TRACK_URL, body)) return; } catch (e) {}
+      try { fetch(TRACK_URL, { method: 'POST', body: body, keepalive: true, headers: { 'content-type': 'text/plain' } }); } catch (e) {}
+    }
+    function ev(type, data) {
+      if (off) return;
+      var e = { v: 1, sid: sid, n: n++, sec: Math.round((Date.now() - t0) / 1000), type: type, src: src, ad: ad };
+      for (var k in data) if (Object.prototype.hasOwnProperty.call(data, k)) e[k] = data[k];
+      queue.push(e); sent.push(e);
+      if (queue.length >= 10 || type === 'end') flush();
+    }
+    if (document.addEventListener) document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') flush(); });
+    if (window.addEventListener) window.addEventListener('pagehide', flush);
+    window.__track = { events: sent, off: off };
+    return {
+      start: function (mode, seed) { game = { t: Date.now(), moved: false }; ev('start', { mode: mode, seed: seedFromUrl ? seed : null }); seedFromUrl = false; },
+      move: function (mode) { if (game.moved) return; game.moved = true; ev('first_move', { mode: mode, after: Math.round((Date.now() - game.t) / 1000) }); },
+      end: function (st) { ev('end', { mode: st.mode, cause: st.overCause, score: st.score, placements: st.placements, rescued: runRescued, after: Math.round((Date.now() - game.t) / 1000) }); },
+      restart: function (cause) { ev('restart', { prev: cause || null }); }
+    };
+  })();
+
   // ── 상태 ── (colorGrid 제거 — 세션4부터 색은 코어 state.colors가 단일 출처)
   var state, fx, cellPop, fallAnim, shakeT, mascotTimer, firstPlaceDone = false;
   var boardCv = document.getElementById('board'), bctx = boardCv.getContext('2d');
@@ -45,6 +84,7 @@
     updateTier();
     updateStatus();
     drawTray();
+    track.start(currentMode, seed);
     if (!firstPlaceDone) showHint();
     showOnce('bin', '안 쓰는 조각은 통에 버려요 — 대신 위협이 다가와요');
   }
@@ -862,6 +902,7 @@
   // 이벤트 → 연출 공용 처리 (배치·버리기 공용 — ev가 전부 결정)
   function juice(ev) {
     var t = performance.now();
+    track.move(currentMode);
     if (!firstPlaceDone) { firstPlaceDone = true; hideHint(); }
     ev.placed.forEach(function (p) { cellPop[p[0] + ',' + p[1]] = t; });
     var itemGain = ev.gained - (ev.chain.length ? ev.chain.reduce(function (a, s2) { return a + s2.gained; }, 0) : 0);
@@ -1045,7 +1086,7 @@
   });
   syncMuteLabel();
   document.getElementById('restart').addEventListener('click', function () { reset((Date.now() % 1000000) | 0); });
-  document.getElementById('replay').addEventListener('click', function () { reset((Date.now() % 1000000) | 0); });
+  document.getElementById('replay').addEventListener('click', function () { track.restart(state && state.overCause); reset((Date.now() % 1000000) | 0); });
   // 종료하기 (세션12 — 작가: "다시 하기와 종료하기만"). 앱인토스 런타임에서는 플랫폼 닫기 API로 교체 예정.
   var quitEl = document.getElementById('quit');
   if (quitEl && quitEl.addEventListener) quitEl.addEventListener('click', function () {
@@ -1144,6 +1185,7 @@
   });
 
   function endGame() {
+    track.end(state);
     var won = state.overCause === 'clear'; // 세션13: 임무 완수
     if (won) { sfx('rescue'); buzz([60, 40, 80]); setMascot('cheer'); }
     else { sfx('over'); setMascot('ko'); }
