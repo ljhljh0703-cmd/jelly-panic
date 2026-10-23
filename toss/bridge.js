@@ -2,7 +2,9 @@
 // 게임은 PLATFORM 이 있으면 저장소·뒤로가기·닫기·진동을 이쪽으로 쓰고, 없으면 브라우저 기능을 쓴다.
 // 검수표(앱인토스 게임 출시 가이드)와 맞춘 것: 사용자 식별키 발급·저장, 네이티브 저장소로 기록 유지, 안드로이드 뒤로가기,
 // 안전 영역(상단 닫기 버튼 포함), 백그라운드 소리 정지(게임 본체 visibilitychange).
-import { User, Storage, graniteEvent, closeView, SafeArea, generateHapticFeedback, Environment, eventLog, submitGameCenterLeaderBoardScore, openGameCenterLeaderboard } from '@apps-in-toss/web-framework';
+import { User, Storage, graniteEvent, closeView, SafeArea, generateHapticFeedback, Environment, eventLog, submitGameCenterLeaderBoardScore, openGameCenterLeaderboard, Share } from '@apps-in-toss/web-framework';
+
+const APP_NAME = 'jelly-panic'; // apps-in-toss.config.ts 의 appName 과 같게. 콘솔에서 이름이 정해지면 두 곳을 같이 고친다
 
 const STORE_KEY = 'jelly-panic-store'; // 게임 저장 값 전부를 JSON 하나로 묶어 네이티브 저장소에 둔다
 const mem = {};
@@ -79,6 +81,12 @@ async function boot() {
     log: (name, params) => { try { eventLog({ log_name: name, log_type: 'event', params: params || {} }).catch(() => {}); } catch (e) {} },
     // 리더보드: 끝없이 모드 점수를 토스 게임센터 순위에 올리고, 판 끝 화면에서 순위를 연다
     submitScore: (n) => { try { if (!submitGameCenterLeaderBoardScore.isSupported || submitGameCenterLeaderBoardScore.isSupported()) submitGameCenterLeaderBoardScore({ score: String(n) }).catch(() => {}); } catch (e) {} },
+    // 공유: 토스 공유 시트로 결과 글 + 토스 안에서 이 게임을 여는 주소(만들기 실패하면 글만)
+    share: async (text) => {
+      let link = '';
+      try { link = await withTimeout(Share.createLink({ path: 'intoss://' + APP_NAME + '?src=share' }), 2000) || ''; } catch (e) {}
+      try { await Share.sendMessage({ message: link ? text + ' ' + link : text }); } catch (e) {}
+    },
     openRanking: (() => { try { return openGameCenterLeaderboard.isSupported && !openGameCenterLeaderboard.isSupported() ? null : () => { openGameCenterLeaderboard().catch(() => {}); }; } catch (e) { return null; } })(),
   };
   applySafeArea();

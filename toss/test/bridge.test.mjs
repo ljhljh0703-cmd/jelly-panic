@@ -31,6 +31,8 @@ ok(await p.evaluate(() => !document.getElementById('dex').classList.contains('sh
 await p.evaluate(() => window.__fakeBack());
 ok(await p.evaluate(() => window.__closed === 1), '뒤로가기: 열린 창 없으면 미니앱 닫기');
 ok(await p.evaluate(() => (window.__logs || []).includes('jp_start')), '토스 행동 기록에 판 시작이 남음');
+await p.evaluate(() => document.getElementById('share').click()); await p.waitForTimeout(300);
+ok(await p.evaluate(() => { const m = (window.__shared || [])[0] || ''; return m.indexOf('젤리 패닉') === 0 && m.indexOf(encodeURIComponent('intoss://jelly-panic?src=share')) > 0; }), '공유: 토스 공유 시트에 결과 글 + 토스 주소');
 ok(errs.length === 0, '오류 0 ' + JSON.stringify(errs.slice(0, 2)));
 await b.close();
 fs.rmSync(out, { recursive: true, force: true });

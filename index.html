@@ -1118,7 +1118,7 @@
 
   // ── 익명 기록 (광고 성과·다시 오는 비율 보기용) ──
   // 보내는 것: 탭마다 새로 뽑는 무작위 번호(sid), 이 기기에서 처음 한 번 뽑아 기기 안에 저장해 두는 무작위 번호(did, 다음 날 다시 왔는지 세기용),
-  //   광고 꼬리표(src·ad), 판 시작·첫 수·판 끝·다시 하기·판 도중 나감과 그 판의 숫자(모드·스테이지·오늘의 판 날짜·점수·놓은 수·걸린 초), 게임 판번호(ver).
+  //   광고 꼬리표(src·ad), 판 시작·첫 수·판 끝·다시 하기·판 도중 나감·공유 단추와 그 판의 숫자(모드·스테이지·오늘의 판 날짜·점수·놓은 수·걸린 초), 게임 판번호(ver).
   // 보내지 않는 것: 이름·사진·광고 ID 같은 기기 고유 번호·쿠키·IP 주소. 사진을 등록했는지 여부도 보내지 않는다. did는 무작위 번호라 사람을 알아낼 수 없다.
   // 수집 주소(TRACK_URL)가 비어 있으면 아무것도 보내지 않는다. Do Not Track·Global Privacy Control·?notrack 이면 끄고, 그때는 did도 만들지 않는다.
   var BUILD = '20261024'; // 공개판 번호 — 반반 비교·고친 전후 비교에 쓴다
@@ -1173,6 +1173,7 @@
       move: function (st) { if (game.moved) return; game.moved = true; ev('first_move', withWhere(st, { after: Math.round((Date.now() - game.t) / 1000) })); },
       end: function (st) { ev('end', withWhere(st, { cause: st.overCause, score: st.score, placements: st.placements, rescued: runRescued, after: Math.round((Date.now() - game.t) / 1000) })); },
       restart: function (cause) { ev('restart', { prev: cause || null }); },
+      share: function (st) { ev('share', withWhere(st, { cause: st.overCause || null, score: st.score, placements: st.placements })); },
       // 판 도중 나감: 화면을 떠날 때 판이 끝나지 않았으면 한 번만 (어디서 그만두는지 보기용)
       leave: function (st) { if (game.left || !st || st.over) return; game.left = true; ev('leave', withWhere(st, { score: st.score, placements: st.placements, after: Math.round((Date.now() - game.t) / 1000) })); }
     };
@@ -2375,15 +2376,28 @@
     x.fillText('지켜줘! 젤리 패닉 — 소중한 것을 지키는 퍼즐', W / 2, 985);
     return cv;
   }
+  // 공유 글: 결과 한 줄 + 돌아올 주소(?src=share 로 공유 타고 온 사람을 셀 수 있게)
+  var PUBLIC_URL = 'https://ljhljh0703-cmd.github.io/jelly-panic/';
+  function shareText() {
+    var head = state.mode === 'daily' && state.dailyKey
+      ? '젤리 패닉 ' + dayLabel(state.dailyKey) + ' 오늘의 임무' + (state.overCause === 'clear' ? ', ' + state.placements + '수 만에 완수! 같은 판, 몇 수 만에 깰 수 있어?' : ' 도전 중. 같은 판, 너는 깰 수 있어?')
+      : state.mode === 'stage' && state.stage != null
+        ? '젤리 패닉 스테이지 ' + (state.stage + 1) + (state.overCause === 'clear' ? ' 깼다! (점수 ' + state.score + ')' : ' 도전 중. 같이 해 볼래?')
+        : '젤리 패닉에서 ' + state.score + '점' + (runRescued ? ', 소중한 것 ' + runRescued + '번 구출' : '') + '. 내 기록 넘을 수 있어?';
+    return { text: head, url: PUBLIC_URL + '?src=share' };
+  }
   var shareBtn = document.getElementById('share');
   if (shareBtn && shareBtn.addEventListener) shareBtn.addEventListener('click', function () {
+    var st = shareText();
+    track.share(state);
+    if (PLATFORM && PLATFORM.share) { PLATFORM.share(st.text); return; } // 토스: 토스 공유 시트(토스 안에서 열리는 주소를 붙임)
     var cv = buildShareCard(state.overCause !== 'baby');
     if (cv.toBlob) cv.toBlob(function (blob) {
       if (!blob) return;
       try {
         var f = new File([blob], 'jelly-panic.png', { type: 'image/png' });
         if (navigator.share && navigator.canShare && navigator.canShare({ files: [f] })) {
-          navigator.share({ files: [f], title: '지켜줘! 젤리 패닉' }).catch(function () {});
+          navigator.share({ files: [f], title: '지켜줘! 젤리 패닉', text: st.text + ' ' + st.url }).catch(function () {});
           return;
         }
       } catch (e) {}

@@ -13,3 +13,7 @@ export const generateHapticFeedback = (o) => { (window.__haptics = window.__hapt
 export const eventLog = async (o) => { (window.__logs = window.__logs || []).push(o.log_name); };
 export const submitGameCenterLeaderBoardScore = Object.assign(async (o) => { (window.__scores = window.__scores || []).push(o.score); return { statusCode: 'SUCCESS' }; }, { isSupported: () => true });
 export const openGameCenterLeaderboard = Object.assign(async () => { window.__rankOpened = (window.__rankOpened || 0) + 1; }, { isSupported: () => true });
+export const Share = {
+  createLink: async ({ path }) => 'https://toss.im/_m/fake?to=' + encodeURIComponent(path),
+  sendMessage: async ({ message }) => { (window.__shared = window.__shared || []).push(message); },
+};

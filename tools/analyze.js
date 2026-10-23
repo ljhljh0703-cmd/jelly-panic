@@ -9,6 +9,7 @@
 //  4. 다음 날 다시 온 비율(기기 번호 did 기준, 한국 시간 날짜)
 //  5. 광고(src·ad)별 유입과 첫 판 끝까지 간 비율
 //  6. 반반 비교(ab): 그룹별 주요 비율과 차이가 우연인지(두 비율 z 검정)
+//  7. 공유 단추를 누른 판·탭, 공유 주소(src=share)로 들어온 탭
 'use strict';
 var fs = require('fs');
 
@@ -56,6 +57,7 @@ function games(rows) {
         if (e.type === 'first_move') cur.moved = true;
         else if (e.type === 'end') cur.end = e;
         else if (e.type === 'leave') cur.leave = e;
+        else if (e.type === 'share') cur.shared = true;
       }
     });
     if (cur) out.push(cur);
@@ -109,6 +111,10 @@ function analyze(rows) {
     c.devices++; if (seen[did][next]) c.d1++;
   });
   r.retention = cohorts;
+  // 공유
+  var sharedTabs = {};
+  G.forEach(function (g) { if (g.shared) sharedTabs[g.sid] = 1; });
+  r.shares = { games: G.filter(function (g) { return g.shared; }).length, tabs: Object.keys(sharedTabs).length, fromShare: firsts.filter(function (g) { return g.src === 'share'; }).length };
   // 광고별
   r.sources = {};
   firsts.forEach(function (g) {
@@ -133,6 +139,9 @@ function analyze(rows) {
       ended: fg.filter(function (g) { return g.end; }).length,
       replayed: fg.filter(function (g) { return G.some(function (h) { return h.sid === g.sid && h.idx >= 1; }); }).length,
       devices: d1n, d1: d1,
+      endedAll: G.filter(function (g) { return g.ab === grp && g.end; }).length,
+      babyLoss: G.filter(function (g) { return g.ab === grp && g.end && g.end.cause === 'baby'; }).length,
+      shared: fg.filter(function (g) { return G.some(function (h) { return h.sid === g.sid && h.shared; }); }).length,
       vers: Object.keys(fg.reduce(function (o, g) { if (g.ver) o[g.ver] = 1; return o; }, {}))
     };
   });
@@ -141,7 +150,9 @@ function analyze(rows) {
     '첫 수까지': zTest(A.moved, A.tabs, B.moved, B.tabs),
     '첫 판 끝까지': zTest(A.ended, A.tabs, B.ended, B.tabs),
     '다시 하기': zTest(A.replayed, A.tabs, B.replayed, B.tabs),
-    '다음 날 다시 옴': zTest(A.d1, A.devices, B.d1, B.devices)
+    '다음 날 다시 옴': zTest(A.d1, A.devices, B.d1, B.devices),
+    '까마귀에 져서 끝난 판': zTest(A.babyLoss, A.endedAll, B.babyLoss, B.endedAll),
+    '공유한 탭': zTest(A.shared, A.tabs, B.shared, B.tabs)
   };
   return r;
 }
@@ -188,11 +199,17 @@ function toMarkdown(r, files) {
   L.push('| 꼬리표 | 탭 | 첫 수까지 | 첫 판 끝까지 |'); L.push('|---|---|---|---|');
   Object.keys(r.sources).sort(function (a, b) { return r.sources[b].tabs - r.sources[a].tabs; }).forEach(function (k) { var s = r.sources[k]; L.push('| ' + k + ' | ' + s.tabs + ' | ' + fmtPct(s.moved, s.tabs) + ' | ' + fmtPct(s.ended, s.tabs) + ' |'); });
   L.push('');
+  L.push('## 공유');
+  L.push('| | 수 |'); L.push('|---|---|');
+  L.push('| 공유 단추를 누른 판 | ' + r.shares.games + ' |');
+  L.push('| 공유한 탭 | ' + fmtPct(r.shares.tabs, r.tabs) + ' |');
+  L.push('| 공유 주소로 들어온 탭 | ' + fmtPct(r.shares.fromShare, r.tabs) + ' |');
+  L.push('');
   L.push('## 반반 비교 (A/B)');
   L.push('| | A | B | 차이가 우연일 확률(p) |'); L.push('|---|---|---|---|');
   var A = r.ab.A, B = r.ab.B, T = r.abTests;
   L.push('| 공개판 번호 | ' + A.vers.join(', ') + ' | ' + B.vers.join(', ') + ' | |');
-  [['첫 수까지', 'moved', 'tabs'], ['첫 판 끝까지', 'ended', 'tabs'], ['다시 하기', 'replayed', 'tabs'], ['다음 날 다시 옴', 'd1', 'devices']].forEach(function (x) {
+  [['첫 수까지', 'moved', 'tabs'], ['첫 판 끝까지', 'ended', 'tabs'], ['다시 하기', 'replayed', 'tabs'], ['다음 날 다시 옴', 'd1', 'devices'], ['까마귀에 져서 끝난 판', 'babyLoss', 'endedAll'], ['공유한 탭', 'shared', 'tabs']].forEach(function (x) {
     var t = T[x[0]];
     L.push('| ' + x[0] + ' | ' + fmtPct(A[x[1]], A[x[2]]) + ' | ' + fmtPct(B[x[1]], B[x[2]]) + ' | ' + (t ? t.p : '-') + ' |');
   });
