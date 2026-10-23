@@ -28,7 +28,7 @@ node test/sim.js 500        # 500판 시뮬레이션: 피할 수 없는 위협�
 cd toss && npm install && npm test   # 토스 미니앱 연결(가짜 토스 SDK, playwright 필요)
 ```
 
-2026-10-24 컨테이너에서 돌린 결과: `test.js` 105개 · `smoke.js` 16개 · `analyze.test.js` 13개 · 토스 연결 9개 통과, `sim.js 500` 피할 수 없는 위협 0건.
+2026-10-24 컨테이너에서 돌린 결과: `test.js` 105개 · `smoke.js` 16개 · `analyze.test.js` 14개 · 토스 연결 13개 통과, `sim.js 500` 피할 수 없는 위협 0건.
 
 **플레이 기록 보기**
 
@@ -98,8 +98,8 @@ Current local gate before publish (2026-10-24):
 
 - `node test/test.js`: 105 passed, 0 failed.
 - `node test/smoke.js`: 16 passed, 0 failed.
-- `node test/analyze.test.js`: 13 passed, 0 failed.
-- `cd toss && npm test`: 9 passed, 0 failed.
+- `node test/analyze.test.js`: 14 passed, 0 failed.
+- `cd toss && npm test`: 13 passed, 0 failed.
 - `node test/sim.js 500`: unavoidable unfair spawns 0.
 - Counterfactual legacy pool risk: 19.1% of candidate cells would have been uncoverable without the coverability rule.
 

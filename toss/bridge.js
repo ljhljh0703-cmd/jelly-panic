@@ -8,9 +8,12 @@ const APP_NAME = 'jelly-panic'; // apps-in-toss.config.ts 의 appName 과 같게
 
 const STORE_KEY = 'jelly-panic-store'; // 게임 저장 값 전부를 JSON 하나로 묶어 네이티브 저장소에 둔다
 const mem = {};
+const dirty = {};       // 이번에 게임이 쓴 키
+let loaded = false;     // 저장소를 읽었는지. 못 읽었으면 쓰지 않는다(늦게 온 답을 기다렸다가 합친다) — 지난 기록을 빈 값으로 덮지 않게
 let saveTimer = null;
 
 function saveSoon() {
+  if (!loaded) return;
   clearTimeout(saveTimer);
   saveTimer = setTimeout(() => { try { Storage.setItem(STORE_KEY, JSON.stringify(mem)).catch(() => {}); } catch (e) {} }, 300);
 }
@@ -49,13 +52,31 @@ async function boot() {
   if (!inToss()) { runGame(); return; }
 
   // 1) 저장 값 불러오기 (게임이 동기 읽기를 하므로 시작 전에 메모리로)
-  try {
-    const raw = await withTimeout(Storage.getItem(STORE_KEY));
-    if (raw) Object.assign(mem, JSON.parse(raw));
-  } catch (e) {}
+  const LATE = {};
+  let load = null;
+  try { load = Promise.resolve(Storage.getItem(STORE_KEY)); } catch (e) { load = Promise.reject(e); }
+  load.catch(() => {});
+  let raw = LATE;
+  try { raw = await withTimeout(load.then((v) => (v == null ? null : v)), 1500); if (raw === undefined) raw = LATE; } catch (e) { raw = LATE; }
+  if (raw !== LATE) {
+    loaded = true;
+    try { if (raw) Object.assign(mem, JSON.parse(raw)); } catch (e) {}
+  } else {
+    // 1.5초 안에 못 읽음: 게임은 먼저 시작하고, 답이 오면 지난 기록을 합친 뒤에야 저장한다
+    load.then((late) => {
+      let old = {};
+      try { old = late ? JSON.parse(late) : {}; } catch (e) { old = {}; }
+      Object.keys(old).forEach((k) => {
+        if (!dirty[k]) { mem[k] = old[k]; return; }
+        if (k === 'cp-best' || k === 'cp-stages') mem[k] = String(Math.max(parseInt(old[k], 10) || 0, parseInt(mem[k], 10) || 0));
+        else if (k === 'cp-did') mem[k] = old[k]; // 기기 번호는 예전 것을 지킨다(다음 날 다시 옴·반반 그룹이 흔들리지 않게)
+      });
+      loaded = true; saveSoon();
+    }).catch(() => {}); // 끝내 못 읽으면 이번 실행 기록은 저장하지 않는다(지난 기록 보호가 먼저)
+  }
   // 처음 토스에서 열 때: 같은 기기 브라우저 기록이 있으면 가져옴(없으면 빈 값)
   try {
-    if (!Object.keys(mem).length && window.localStorage) {
+    if (loaded && !Object.keys(mem).length && window.localStorage) {
       for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.indexOf('cp-') === 0) mem[k] = localStorage.getItem(k); }
     }
   } catch (e) {}
@@ -70,7 +91,7 @@ async function boot() {
     name: 'toss',
     store: {
       get: (k) => (Object.prototype.hasOwnProperty.call(mem, k) ? mem[k] : null),
-      set: (k, v) => { mem[k] = String(v); saveSoon(); },
+      set: (k, v) => { mem[k] = String(v); dirty[k] = 1; saveSoon(); },
     },
     exit: () => { try { closeView(); } catch (e) {} },
     onBack: (fn) => {

@@ -35,6 +35,7 @@ ok(r.tabs === 30 && r.devices === 22, '탭 30(첫날 20 + 다음 날 8 + 공유�
 ok(r.ab.A.tabs === 14 && r.ab.B.tabs === 16, '그룹별 탭 수');
 ok(r.retention['2026-10-24'].devices === 20 && r.retention['2026-10-24'].d1 === 8 && r.retention['2026-10-25'].devices === 2, '다음 날 다시 온 기기 8/20, 둘째 날 새 기기 2');
 ok(r.ab.A.d1 === 2 && r.ab.B.d1 === 6, '그룹별 다음 날 다시 옴 2 / 6');
+ok(r.retention['2026-10-25'].open === true && r.ab.A.devices === 10 && r.ab.B.devices === 10, '마지막 날 처음 온 기기(공유로 온 2대)는 다음 날 비율 분모에서 뺌');
 ok(r.funnel.firstLeave === 6 && r.funnel.firstMove === 29, '첫 판 도중 나감 6·첫 수까지 29');
 ok(r.shares.games === 3 && r.shares.tabs === 3 && r.shares.fromShare === 2, '공유 3판·3탭, 공유 주소로 온 탭 2');
 ok(r.ab.B.babyLoss === 5 && r.ab.B.endedAll === 26 && r.ab.A.babyLoss === 0, '까마귀에 져서 끝난 판(B 5/26)');

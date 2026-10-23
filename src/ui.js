@@ -120,7 +120,7 @@
   function reset(seed) {
     if (currentMode === 'daily') {
       var dk = kstKey();
-      state = C.newGame(0, { mode: 'daily', daily: C.daily(dk), tune: abTune() });
+      state = C.newGame(0, { mode: 'daily', daily: C.daily(dk) }); // 오늘의 임무는 반반 비교 규칙 후보와 상관없이 모두 같은 판
       seed = state.seed;
       var dr = dailyRec(dk); dr.tries++; dailySave(dk, dr);
     } else state = C.newGame(seed, { mode: currentMode, stage: currentStage, tune: abTune() });
@@ -1330,20 +1330,26 @@
   var rankBtn = document.getElementById('rank');
   if (rankBtn && rankBtn.addEventListener) rankBtn.addEventListener('click', function () { if (PLATFORM && PLATFORM.openRanking) PLATFORM.openRanking(); });
   var quitEl = document.getElementById('quit');
+  // 토스: 나가기 전에 확인 창(검수표 「종료 확인」). 상단 X는 토스가 자체 확인 창을 띄운다
+  function askExit() { var ea = document.getElementById('exitask'); if (ea && ea.classList) ea.classList.add('show'); }
+  function closeExitAsk() { var ea = document.getElementById('exitask'); if (ea && ea.classList) ea.classList.remove('show'); }
+  var exitGoEl = document.getElementById('exitgo'), exitStayEl = document.getElementById('exitstay');
+  if (exitGoEl && exitGoEl.addEventListener) exitGoEl.addEventListener('click', function () { closeExitAsk(); if (PLATFORM && PLATFORM.exit) PLATFORM.exit(); });
+  if (exitStayEl && exitStayEl.addEventListener) exitStayEl.addEventListener('click', closeExitAsk);
   if (quitEl && quitEl.addEventListener) quitEl.addEventListener('click', function () {
-    if (PLATFORM && PLATFORM.exit) { PLATFORM.exit(); return; }
+    if (PLATFORM && PLATFORM.exit) { askExit(); return; }
     try { window.close(); } catch (e) {}
     setTimeout(function () { showToast('탭을 닫으면 종료돼요'); }, 250);
   });
 
-  // 안드로이드 뒤로가기(토스 미니앱): 열린 창(도감·모드·판 끝)을 먼저 닫고, 없으면 나가기
+  // 안드로이드 뒤로가기(토스 미니앱): 열린 창(종료 확인·도감·모드)을 먼저 닫고, 없으면 종료 확인 창
   if (PLATFORM && PLATFORM.onBack) PLATFORM.onBack(function () {
-    var ids = ['dex', 'modes'];
+    var ids = ['exitask', 'dex', 'modes'];
     for (var bi = 0; bi < ids.length; bi++) {
       var be = document.getElementById(ids[bi]);
       if (be && be.classList && be.classList.contains('show')) { be.classList.remove('show'); return; }
     }
-    if (PLATFORM.exit) PLATFORM.exit();
+    askExit();
   });
 
   // ── 세션12: 도감 (❓) — 위협·아이템 효과 팝업. 닫기 버튼 좌측 규칙(Toss 다이얼로그) 준수.
@@ -1398,7 +1404,18 @@
     ctx.beginPath(); ctx.arc(cx + s * 0.21, cy - s * 0.1, s * 0.035, 0, 7); ctx.fill();
   }
   // ── 세션13: 모드 선택 (🎮) ──
-  function unlockedStage() { return Math.min(parseInt(storeGet('cp-stage') || '0', 10) || 0, C.STAGES.length - 1); }
+  // 스테이지 진행 = 깬 스테이지 수(cp-stages, 0~전체). 예전 저장값 cp-stage(연 스테이지 번호, 마지막에서 멈춤)는 한 번 옮긴다:
+  // 예전 판은 10스테이지라 9 = 10까지 다 깬 것으로 본다(9를 깨고 10을 연 기기도 9라 구분이 안 됨, 넉넉한 쪽으로)
+  function clearedStages() {
+    var v = storeGet('cp-stages');
+    if (v == null) {
+      var old = parseInt(storeGet('cp-stage') || '0', 10) || 0;
+      v = String(old >= 9 ? Math.max(10, old) : old);
+      storeSet('cp-stages', v);
+    }
+    return Math.max(0, Math.min(parseInt(v, 10) || 0, C.STAGES.length));
+  }
+  function unlockedStage() { return Math.min(clearedStages(), C.STAGES.length - 1); }
   function stageGoalDesc(i) { return goalDesc(C.STAGES[i].goal); }
   function goalDesc(g) {
     if (g.type === 'color') return FLAVOR_DOT[g.color] + FLAVORS[g.color] + ' 젤리 ' + g.n + '개 부수기';
@@ -1438,11 +1455,11 @@
     if (!grid || !document.createElement) { pickMode('stage'); return; }
     if (grid.style.display !== 'none') { grid.style.display = 'none'; return; }
     grid.innerHTML = '';
-    var un = unlockedStage();
+    var un = unlockedStage(), cl = clearedStages();
     for (var si = 0; si < C.STAGES.length; si++) (function (idx) {
       var b = document.createElement('button');
-      b.className = 'btn stg' + (idx < un ? ' done' : idx === un ? ' now' : ' lock');
-      b.textContent = idx < un ? '✓' + (idx + 1) : String(idx + 1);
+      b.className = 'btn stg' + (idx < cl ? ' done' : idx === un ? ' now' : ' lock');
+      b.textContent = idx < cl ? '✓' + (idx + 1) : String(idx + 1);
       b.title = stageGoalDesc(idx);
       if (idx <= un) b.addEventListener('click', function (ev) { ev.stopPropagation(); pickMode('stage', idx); });
       else b.disabled = true;
@@ -1485,9 +1502,8 @@
       cause = '오늘의 임무 완수! ' + state.placements + '수 만에';
     } else if (won) {
       cause = '스테이지 ' + (state.stage + 1) + ' 임무 완수!';
-      var unlocked = parseInt(storeGet('cp-stage') || '0', 10) || 0;
+      if (state.stage + 1 > clearedStages()) storeSet('cp-stages', String(state.stage + 1));
       var next = Math.min(state.stage + 1, C.STAGES.length - 1);
-      if (next > unlocked) storeSet('cp-stage', String(next));
       currentStage = next;
       var rp2 = document.getElementById('replay');
       if (rp2) rp2.textContent = (state.stage + 1 < C.STAGES.length) ? '다음 스테이지' : '다시 하기';
@@ -1514,7 +1530,7 @@
     var nb = document.getElementById('newbest');
     if (state.mode === 'daily') {
       var drs = dailyRec(state.dailyKey);
-      if (statsEl) statsEl.textContent = '🗓️ ' + dayLabel(state.dailyKey) + ' 내 최고 ' + (drs.best != null ? drs.best + '수' : '아직 없음') + ' · 도전 ' + drs.tries + '번\n다음 임무까지 ' + untilNextDaily();
+      if (statsEl) statsEl.textContent = '🗓️ ' + dayLabel(state.dailyKey) + ' 내 최고 ' + (drs.best != null ? drs.best + '수' : '아직 없음') + ' · 도전 ' + drs.tries + '번\n' + (state.dailyKey === kstKey() ? '다음 임무까지 ' + untilNextDaily() : '새 날 임무가 열렸어요');
       if (nb) nb.textContent = '🏆 오늘 최고 기록!';
       if (nb && nb.classList && state.dailyNewBest) nb.classList.add('show');
     } else {

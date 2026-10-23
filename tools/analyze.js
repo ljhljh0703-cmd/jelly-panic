@@ -103,12 +103,14 @@ function analyze(rows) {
   // 다음 날 다시 온 비율: 기기별 처음 본 날 → 그 다음 날에도 있었나
   var seen = {};
   rows.forEach(function (e) { if (!e.did || !e.at) return; var day = kstDay(e.at); (seen[e.did] = seen[e.did] || {})[day] = 1; });
+  // 기록의 마지막 날 처음 온 기기는 다음 날 기록이 아직 없으니 분모에서 뺀다(표에는 「다음 날 기록 없음」)
+  var lastDay = Object.keys(rows.reduce(function (o, e) { if (e.at) o[kstDay(e.at)] = 1; return o; }, {})).sort().pop() || '';
+  function nextDay(d0) { return kstDay(Date.parse(d0 + 'T00:00:00+09:00') + 24 * 3600 * 1000); }
   var cohorts = {};
   Object.keys(seen).forEach(function (did) {
-    var days = Object.keys(seen[did]).sort(), d0 = days[0];
-    var next = kstDay(Date.parse(d0 + 'T00:00:00+09:00') + 24 * 3600 * 1000);
-    var c = cohorts[d0] = cohorts[d0] || { devices: 0, d1: 0 };
-    c.devices++; if (seen[did][next]) c.d1++;
+    var d0 = Object.keys(seen[did]).sort()[0];
+    var c = cohorts[d0] = cohorts[d0] || { devices: 0, d1: 0, open: d0 >= lastDay };
+    c.devices++; if (seen[did][nextDay(d0)]) c.d1++;
   });
   r.retention = cohorts;
   // 공유
@@ -129,9 +131,9 @@ function analyze(rows) {
     var dev = Object.keys(seen).filter(function (did) { return G.some(function (g) { return g.did === did && g.ab === grp; }); });
     var d1 = 0, d1n = 0;
     dev.forEach(function (did) {
-      var days = Object.keys(seen[did]).sort(), d0 = days[0];
-      var next = kstDay(Date.parse(d0 + 'T00:00:00+09:00') + 24 * 3600 * 1000);
-      d1n++; if (seen[did][next]) d1++;
+      var d0 = Object.keys(seen[did]).sort()[0];
+      if (d0 >= lastDay) return; // 다음 날 기록이 아직 없는 기기
+      d1n++; if (seen[did][nextDay(d0)]) d1++;
     });
     r.ab[grp] = {
       tabs: fg.length,
@@ -193,7 +195,7 @@ function toMarkdown(r, files) {
   }
   L.push('## 다음 날 다시 온 비율 (처음 온 날 기준)');
   L.push('| 처음 온 날 | 기기 | 다음 날 다시 옴 |'); L.push('|---|---|---|');
-  Object.keys(r.retention).sort().forEach(function (k) { var c = r.retention[k]; L.push('| ' + k + ' | ' + c.devices + ' | ' + fmtPct(c.d1, c.devices) + ' |'); });
+  Object.keys(r.retention).sort().forEach(function (k) { var c = r.retention[k]; L.push('| ' + k + ' | ' + c.devices + ' | ' + (c.open ? '다음 날 기록 없음' : fmtPct(c.d1, c.devices)) + ' |'); });
   L.push('');
   L.push('## 유입 (광고 꼬리표별 첫 판)');
   L.push('| 꼬리표 | 탭 | 첫 수까지 | 첫 판 끝까지 |'); L.push('|---|---|---|---|');
