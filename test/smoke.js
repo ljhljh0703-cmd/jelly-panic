@@ -164,7 +164,7 @@ try {
   st5.threats = [{ r: 5, c: 6, type: 'crow', countdown: 1 }];
   st5.tray = [0, 0, 0];
   hook4.place(0, 0, 0);
-  var overOk = st5.over && els.overcause.textContent.indexOf('아기') !== -1;
+  var overOk = st5.over && els.overcause.textContent.indexOf('소중한 것') !== -1;
   for (var f6 = 1; f6 <= 10; f6++) { var cb6 = rafCb; rafCb = null; cb6(6000 + f6 * 30); }
   s4ok = rocketOk && mac && overOk;
 } catch (e) { threw = e; }

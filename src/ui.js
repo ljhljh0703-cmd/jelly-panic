@@ -6,7 +6,7 @@
   // ── 색상 (쿠키/캔디 파스텔 — 오리지널). 세션4: 색이 코어 상태(NCOLORS=5)가 됨 — 마카롱 타겟팅용
   var PIECE_COLORS = ['#FF9EB5', '#FFC15E', '#9BDB8A', '#8FD4F0', '#C9A8F0'];
   var BOARD_BG = '#8D5B3F', CELL_BG = '#A9714F', CELL_INNER = '#F7E8D0';
-  var JELLY_COLOR = '#B57EDC', HOLE_COLOR = '#4A3020';
+  var JELLY_COLOR = '#6E3D8C', HOLE_COLOR = '#4A3020';
   var CRACK_ACCENT = '#FF7043', JELLY_ACCENT = '#9C6ADE';
   var CRUST_COLOR = '#DCEFF5', SLIME_COLOR = '#7A4E2D', BABY_COLOR = '#FFDFAE', CROW_ACCENT = '#37474F';
   function cellColor(r, c) { var ci = state.colors[r][c]; return ci == null ? '#FFC15E' : PIECE_COLORS[ci % PIECE_COLORS.length]; }
@@ -75,7 +75,9 @@
     if (nb && nb.classList) nb.classList.remove('show');
     var rp = document.getElementById('replay');
     if (rp) rp.textContent = '다시 하기';
-    document.getElementById('seed').textContent = 'seed ' + seed;
+    var seedEl = document.getElementById('seed');
+    seedEl.textContent = 'seed ' + seed;
+    if (seedEl.style) seedEl.style.display = /[?&]showseed/.test(location.search) ? 'block' : 'none';
     document.getElementById('score').textContent = '0';
     var bell = document.getElementById('bell');
     bell.classList.remove('used');
@@ -86,12 +88,11 @@
     drawTray();
     track.start(currentMode, seed);
     if (!firstPlaceDone) showHint();
-    showOnce('bin', '안 쓰는 조각은 통에 버려요 — 대신 위협이 다가와요');
   }
 
   // ── 레이아웃 (가로·세로 모두 반영 — 작은 창/랩탑 호환) ──
   function resize() {
-    var headerH = 92, trayH = Math.min(120, window.innerHeight * 0.18), chrome = 70;
+    var headerH = 92, trayH = Math.min(120, window.innerHeight * 0.18), chrome = 110; // 검토(10-23): 조각 칸 아래 말풍선 자리 40 추가
     var availW = Math.min(window.innerWidth - 24, 416);
     var availH = window.innerHeight - headerH - trayH - chrome;
     var target = Math.max(Math.min(availW, availH), 224);
@@ -147,22 +148,31 @@
     ctx.restore();
   }
 
+  // 검토(10-23): 시럽이 가지맛 조각(파스텔 보라 + 웃는 얼굴)과 거의 같아 보였음 → 진한 시럽 웅덩이 + 아래로 흘러내림, 얼굴 없음
   function drawJellyCell(ctx, x, y, size, t) {
-    var s = size - GAP * 2, cx = x + size / 2, cy = y + size / 2;
-    var wob = Math.sin(t / 260 + x * 0.05) * s * 0.03;
+    var s = size - GAP * 2, x0 = x + GAP, y0 = y + GAP;
+    var wob = Math.sin(t / 380 + x * 0.05) * s * 0.02;
     ctx.save();
-    rrect(ctx, x + GAP - wob / 2, y + GAP + wob, s + wob, s - wob, s * 0.38);
-    ctx.fillStyle = JELLY_COLOR; ctx.globalAlpha = 0.92; ctx.fill();
-    ctx.globalAlpha = 1; ctx.strokeStyle = shade(JELLY_COLOR, -40); ctx.lineWidth = 2; ctx.stroke();
-    rrect(ctx, x + GAP + s * 0.14, y + GAP + s * 0.1 + wob, s * 0.45, s * 0.18, s * 0.09);
-    ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.fill();
-    // 젤리 얼굴 (동글 눈 + 벌린 입)
-    if (s >= 22) {
-      ctx.fillStyle = '#3D2350';
-      ctx.beginPath(); ctx.arc(cx - s * 0.17, cy, s * 0.07, 0, 7); ctx.fill();
-      ctx.beginPath(); ctx.arc(cx + s * 0.17, cy, s * 0.07, 0, 7); ctx.fill();
-      ctx.beginPath(); ctx.arc(cx, cy + s * 0.15, s * 0.09, 0, 7); ctx.fill();
+    rrect(ctx, x0, y0 + wob, s, s - wob, s * 0.22);
+    ctx.fillStyle = JELLY_COLOR; ctx.fill();
+    ctx.strokeStyle = shade(JELLY_COLOR, -35); ctx.lineWidth = 2; ctx.stroke();
+    // 흘러내리는 방울 3개 (아래 가장자리)
+    ctx.fillStyle = JELLY_COLOR;
+    var drips = [[0.22, 0.16], [0.52, 0.26], [0.8, 0.12]];
+    for (var d = 0; d < drips.length; d++) {
+      var dx = x0 + s * drips[d][0], len = s * (drips[d][1] + 0.04 * Math.sin(t / 500 + d));
+      ctx.beginPath(); ctx.moveTo(dx - s * 0.07, y0 + s - 2);
+      ctx.quadraticCurveTo(dx - s * 0.06, y0 + s + len, dx, y0 + s + len);
+      ctx.quadraticCurveTo(dx + s * 0.06, y0 + s + len, dx + s * 0.07, y0 + s - 2);
+      ctx.closePath(); ctx.fill();
     }
+    // 끈적한 광택 줄
+    ctx.strokeStyle = 'rgba(255,255,255,.45)'; ctx.lineWidth = Math.max(2, s * 0.07); ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(x0 + s * 0.2, y0 + s * 0.24 + wob); ctx.quadraticCurveTo(x0 + s * 0.45, y0 + s * 0.14 + wob, x0 + s * 0.68, y0 + s * 0.26 + wob); ctx.stroke();
+    // 기포
+    ctx.fillStyle = 'rgba(255,255,255,.28)';
+    ctx.beginPath(); ctx.arc(x0 + s * 0.3, y0 + s * 0.62, s * 0.07, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.arc(x0 + s * 0.66, y0 + s * 0.54, s * 0.05, 0, 7); ctx.fill();
     ctx.restore();
   }
 
@@ -674,8 +684,8 @@
     // 세션13: 임무/디펜스 진행 — 1순위 신호
     if (state.mode === 'stage' && state.goal) {
       var g = state.goal;
-      if (g.type === 'color') parts.push('🎯 ' + FLAVORS[g.color] + ' ' + Math.min(state.colorCleared[g.color], g.n) + '/' + g.n);
-      else if (g.type === 'colors') parts.push('🎯 ' + g.parts.map(function (pt) { return FLAVORS[pt[0]] + ' ' + Math.min(state.colorCleared[pt[0]], pt[1]) + '/' + pt[1]; }).join(' · '));
+      if (g.type === 'color') parts.push('🎯 ' + FLAVOR_DOT[g.color] + FLAVORS[g.color] + ' ' + Math.min(state.colorCleared[g.color], g.n) + '/' + g.n);
+      else if (g.type === 'colors') parts.push('🎯 ' + g.parts.map(function (pt) { return FLAVOR_DOT[pt[0]] + FLAVORS[pt[0]] + ' ' + Math.min(state.colorCleared[pt[0]], pt[1]) + '/' + pt[1]; }).join(' · '));
       else if (g.type === 'rescue') parts.push('🎯 구출 ' + Math.min(state.totalRescued, g.n) + '/' + g.n);
       else if (g.type === 'score') parts.push('🎯 ' + state.score + '/' + g.score + '점 · ' + Math.max(0, g.moves - state.placements) + '수');
     } else if (state.mode === 'defense') {
@@ -697,6 +707,7 @@
 
   // ── 세션9: 괴식 젤리 아이덴티티 (작가 확정 — 코믹 바이럴). 색 = 맛. clean-room(외부 IP 명칭 미사용).
   var FLAVORS = ['딸기맛', '귀지맛', '코딱지맛', '치약맛', '가지맛'];
+  var FLAVOR_DOT = ['🔴', '🟠', '🟢', '🔵', '🟣']; // 검토(10-23): 임무에 색 견본 — 맛 이름만으론 색을 모름
 
   // ── 세션9: 소중한 것 사진 (사람+반려동물, 최대 2장) — 100% 온디바이스(canvas 가공, 서버 전송 0 = 개인정보 소명 유지)
   var photos = [];
@@ -734,7 +745,9 @@
     }
   }
   function addFloat(r, c, text, color, delayMs) {
-    fx.push({ kind: 'f', x: PAD + c * CS + CS / 2, y: PAD + r * CS, text: text, color: color, t0: performance.now() + (delayMs || 0), life: 900 });
+    var t0 = performance.now() + (delayMs || 0), stack = 0;
+    for (var k = 0; k < fx.length; k++) if (fx[k].kind === 'f' && fx[k].r === r && fx[k].c === c && Math.abs(fx[k].t0 - t0) < 500) stack++; // 검토(10-23): 같은 칸 숫자 겹침 → 위로 쌓기
+    fx.push({ kind: 'f', r: r, c: c, x: PAD + c * CS + CS / 2, y: PAD + r * CS - stack * 22, text: text, color: color, t0: t0, life: 900 });
   }
   function drawFx(t) {
     for (var i = fx.length - 1; i >= 0; i--) {
@@ -752,8 +765,10 @@
         bctx.globalAlpha = 1 - p * p;
         bctx.font = 'bold 20px Jua, sans-serif'; bctx.textAlign = 'center';
         bctx.fillStyle = f.color; bctx.strokeStyle = '#FFFDF7'; bctx.lineWidth = 4; bctx.lineJoin = 'round';
-        bctx.strokeText(f.text, f.x, f.y - p * 34);
-        bctx.fillText(f.text, f.x, f.y - p * 34);
+        var tw = bctx.measureText ? (bctx.measureText(f.text).width || 0) : 0, bw = CS * C.N + PAD * 2; // 검토(10-23): 판 가장자리 숫자 잘림 방지
+        var fxX = Math.max(tw / 2 + 4, Math.min(bw - tw / 2 - 4, f.x)), fxY = Math.max(18, f.y - p * 34);
+        bctx.strokeText(f.text, fxX, fxY);
+        bctx.fillText(f.text, fxX, fxY);
         bctx.globalAlpha = 1;
       }
     }
@@ -898,6 +913,17 @@
     var ev = C.place(state, slot, r, c);
     if (!ev) return;
     juice(ev);
+    if (!state.over && trayHasStuckPiece()) showOnce('bin', '놓을 곳 없는 조각은 통에 버려요 — 대신 위협이 1칸 다가와요');
+  }
+  function trayHasStuckPiece() {
+    for (var i = 0; i < 3; i++) {
+      var sh = state.tray[i];
+      if (sh == null) continue;
+      var can = false;
+      for (var r = 0; r < C.N && !can; r++) for (var c = 0; c < C.N && !can; c++) if (C.canPlace(state, sh, r, c)) can = true;
+      if (!can) return true;
+    }
+    return false;
   }
 
   // 버리기 (세션5, 작가 확정): 통에 드래그 → 조각 소멸 + 위협 1틱 전진
@@ -955,7 +981,7 @@
       showToast(ev.waveStart + '번째 습격! 까마귀가 몰려와요' + (ev.waveBonus ? ' (버틴 보너스 +' + ev.waveBonus + ')' : ''));
       vignetteT = 700; setMascot('worried', 1600);
     }
-    if (ev.babySpawn) { cellPop[ev.babySpawn[0] + ',' + ev.babySpawn[1]] = t; addSparkles(ev.babySpawn[0], ev.babySpawn[1], BABY_COLOR, 8); sfx('grant'); showOnce('baby', '아기 쿠키가 나왔어요 — 줄에 넣으면 구해져요'); }
+    if (ev.babySpawn) { cellPop[ev.babySpawn[0] + ',' + ev.babySpawn[1]] = t; addSparkles(ev.babySpawn[0], ev.babySpawn[1], BABY_COLOR, 8); sfx('grant'); showOnce('baby', '소중한 것이 나왔어요 — 줄에 넣으면 구해져요'); }
     if (ev.slimeSpread) { addSparkles(ev.slimeSpread[0], ev.slimeSpread[1], SLIME_COLOR, 5); sfx('blub'); }
     if (ev.chain && ev.chain.length) {
       // 연쇄(과제 B): 단계별 시차 — 클리어 반짝 → 낙하 애니 → 착지 해체 → 콤보 배수 플로트(숫자·기호만, 텍스트 0)
@@ -1161,8 +1187,8 @@
   function unlockedStage() { return Math.min(parseInt(storeGet('cp-stage') || '0', 10) || 0, C.STAGES.length - 1); }
   function stageGoalDesc(i) {
     var g = C.STAGES[i].goal;
-    if (g.type === 'color') return FLAVORS[g.color] + ' 젤리 ' + g.n + '개 부수기';
-    if (g.type === 'colors') return g.parts.map(function (pt) { return FLAVORS[pt[0]] + ' ' + pt[1] + '개'; }).join(' + ') + ' 부수기';
+    if (g.type === 'color') return FLAVOR_DOT[g.color] + FLAVORS[g.color] + ' 젤리 ' + g.n + '개 부수기';
+    if (g.type === 'colors') return g.parts.map(function (pt) { return FLAVOR_DOT[pt[0]] + FLAVORS[pt[0]] + ' ' + pt[1] + '개'; }).join(' + ') + ' 부수기';
     if (g.type === 'rescue') return '소중한 것 ' + g.n + '번 구출하기';
     return g.moves + '수 안에 ' + g.score + '점 만들기';
   }
@@ -1215,8 +1241,16 @@
       if (rp2) rp2.textContent = (state.stage + 1 < C.STAGES.length) ? '다음 스테이지' : '다시 하기';
     }
     else if (state.overCause === 'moves') cause = '수를 다 썼어요 — 다시 도전해요';
-    else if (state.overCause === 'baby') cause = photoImgs.length ? '소중한 것이 코딱지맛 젤리 범벅이 됐어요…' : '아기 쿠키를 지키지 못했어요';
-    else cause = '예고된 칸을 비우지 못했어요 (구멍 ' + C.countCells(state, C.HOLE) + '개)';
+    else if (state.overCause === 'baby') cause = photoImgs.length ? '소중한 것이 코딱지맛 젤리 범벅이 됐어요…' : '소중한 것을 지키지 못했어요';
+    else {
+      // 검토(10-23): 판이 꽉 차서 진 판에 '예고된 칸을 비우지 못했어요 (구멍 0개)'가 뜨던 오류 — 실제로 막은 칸을 센다
+      var holesN = C.countCells(state, C.HOLE), stickyN = C.countCells(state, C.JELLY) + C.countCells(state, C.CRUST) + C.countCells(state, C.SLIME);
+      var why = [];
+      if (holesN) why.push('구멍 ' + holesN);
+      if (stickyN) why.push('시럽·설탕 ' + stickyN);
+      // 작가 결정(10-23): 지는 이유 = 놓친 위협. 구멍·시럽·설탕은 모두 막지 못한 예고가 남긴 칸이다
+      cause = why.length ? '놓친 위협이 판을 막았어요 — ' + why.join(' · ') + '칸' : '놓을 자리가 없어요';
+    }
     document.getElementById('overcause').textContent = cause;
     // 세션7: 판 스탯 + 베스트 스코어(로컬 저장) + 신기록 배지
     var best = parseInt(storeGet('cp-best') || '0', 10) || 0;
