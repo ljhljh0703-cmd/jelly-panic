@@ -343,7 +343,7 @@
     var x = PAD + th.c * CS, y = PAD + th.r * CS, s = CS - GAP * 2;
     var prog = Math.max(0, Math.min(1, (C.COUNTDOWN - th.countdown) / C.COUNTDOWN)); // 0=여유 → 1=임박
     var pulse = 0.55 + 0.45 * Math.sin(t / (240 - prog * 150)); // 임박할수록 빠른 맥동
-    var accent = th.type === 'crack' ? CRACK_ACCENT : th.type === 'crust' ? '#7FB8D4' : th.type === 'slime' ? SLIME_COLOR : th.type === 'crow' ? CROW_ACCENT : JELLY_ACCENT;
+    var accent = th.type === 'crack' ? CRACK_ACCENT : th.type === 'crust' ? '#7FB8D4' : th.type === 'slime' ? SLIME_COLOR : th.type === 'crow' || th.type === 'peck' ? CROW_ACCENT : JELLY_ACCENT;
     ctx.save();
     if (th.type === 'crack') {
       // 구멍 프리뷰: 점점 어두워지고 균열이 자람
@@ -366,6 +366,13 @@
       var hgt2 = s * (0.2 + prog * 0.65);
       rrect(ctx, x + GAP + 2, y + GAP + (s - hgt2), s - 4, hgt2, Math.min(hgt2 * 0.4, s * 0.2));
       ctx.fillStyle = SLIME_COLOR; ctx.globalAlpha = 0.25 + prog * 0.45; ctx.fill();
+      ctx.globalAlpha = 1;
+    } else if (th.type === 'peck') {
+      // 방벽 쪼기: 내 블록에 부리 자국이 늘어남 (결과 미리보기 = 블록이 사라짐)
+      ctx.globalAlpha = 0.3 + prog * 0.6; ctx.fillStyle = CROW_ACCENT;
+      for (var pk = 0; pk < 1 + Math.round(prog * 3); pk++) {
+        ctx.beginPath(); ctx.moveTo(x + s * (0.3 + pk * 0.15), y + s * 0.3); ctx.lineTo(x + s * (0.38 + pk * 0.15), y + s * 0.55); ctx.lineTo(x + s * (0.22 + pk * 0.15), y + s * 0.5); ctx.closePath(); ctx.fill();
+      }
       ctx.globalAlpha = 1;
     } else if (th.type === 'crow') {
       // 까마귀 그림자가 짙어짐 — 아기를 노림
@@ -650,7 +657,8 @@
     jelly: '끈적 시럽이 칸을 채워요 — 줄에 넣으면 지워져요',
     crust: '설탕이 젤리를 굳혀요 — 옆 줄을 지우면 깨져요',
     slime: '초코 슬라임이 번져요 — 옆 줄을 지우면 잡아요',
-    crow: '도둑 까마귀가 소중한 걸 가져가요 — 예고 칸을 덮거나 먼저 구해요'
+    crow: '도둑 까마귀가 소중한 걸 가져가요 — 예고 칸을 덮거나 먼저 구해요',
+    peck: '까마귀가 방벽을 쪼아요 — 그 젤리를 먼저 지우면 헛수고예요'
   };
   var ITEM_COPY = {};
   ITEM_COPY[12] = '폭탄을 받았어요 — 3×3을 부숴요';
@@ -667,10 +675,11 @@
     if (state.mode === 'stage' && state.goal) {
       var g = state.goal;
       if (g.type === 'color') parts.push('🎯 ' + FLAVORS[g.color] + ' ' + Math.min(state.colorCleared[g.color], g.n) + '/' + g.n);
+      else if (g.type === 'colors') parts.push('🎯 ' + g.parts.map(function (pt) { return FLAVORS[pt[0]] + ' ' + Math.min(state.colorCleared[pt[0]], pt[1]) + '/' + pt[1]; }).join(' · '));
       else if (g.type === 'rescue') parts.push('🎯 구출 ' + Math.min(state.totalRescued, g.n) + '/' + g.n);
       else if (g.type === 'score') parts.push('🎯 ' + state.score + '/' + g.score + '점 · ' + Math.max(0, g.moves - state.placements) + '수');
     } else if (state.mode === 'defense') {
-      parts.push('🛡️ 까마귀 ' + state.crowsDefused + '마리 방어');
+      parts.push('🛡️ ' + (state.wave ? state.wave + '번째 습격 · ' : '') + '까마귀 ' + state.crowsDefused + '마리 방어');
     }
     for (var r = 0; r < C.N; r++) for (var c = 0; c < C.N; c++) if (state.grid[r][c] === C.BABY) hasBaby = true;
     if (hasBaby && state.mode !== 'defense') parts.push('🐣 지켜요');
@@ -930,11 +939,11 @@
     directDef.forEach(function (p) { addSparkles(p[0], p[1], '#FFD700', 10); addFloat(p[0], p[1], '+25', '#FF9800'); sfx('defuse'); });
     ev.fired.forEach(function (p) {
       shakeT = 300;
-      addSparkles(p[0], p[1], p[2] === 'crack' ? '#5D4037' : p[2] === 'crust' ? CRUST_COLOR : p[2] === 'slime' ? SLIME_COLOR : p[2] === 'crow' ? CROW_ACCENT : JELLY_COLOR, 8);
+      addSparkles(p[0], p[1], p[2] === 'crack' ? '#5D4037' : p[2] === 'crust' ? CRUST_COLOR : p[2] === 'slime' ? SLIME_COLOR : p[2] === 'crow' || p[2] === 'peck' ? CROW_ACCENT : JELLY_COLOR, 8);
       sfx(p[2] === 'crust' ? 'crackle' : p[2] === 'slime' ? 'blub' : 'fire'); buzz(80);
     });
     ev.spawned.forEach(function (p) {
-      sfx(p[2] === 'crow' ? 'caw' : 'spawn');
+      sfx(p[2] === 'crow' || p[2] === 'peck' ? 'caw' : 'spawn');
       showOnce('th-' + p[2], TH_COPY[p[2]]);
       if (p[2] === 'crow') { vignetteT = 700; setMascot('worried', 1600); } // 까마귀 가시성 (세션5)
     });
@@ -942,6 +951,10 @@
     if (ev.broke) ev.broke.forEach(function (p) { addSparkles(p[0], p[1], p[2] === 'crust' ? CRUST_COLOR : SLIME_COLOR, 8); addFloat(p[0], p[1], p[2] === 'crust' ? '+15' : '+10', '#8D6E63'); });
     if (ev.rescued > 0) { runRescued += ev.rescued; sfx('rescue'); buzz([60, 40, 80]); addFloat(3, 3, '+100', '#FF6E9C'); setMascot('cheer', 1400); }
     if (state.combo > runMaxCombo) runMaxCombo = state.combo;
+    if (ev.waveStart) {
+      showToast(ev.waveStart + '번째 습격! 까마귀가 몰려와요' + (ev.waveBonus ? ' (버틴 보너스 +' + ev.waveBonus + ')' : ''));
+      vignetteT = 700; setMascot('worried', 1600);
+    }
     if (ev.babySpawn) { cellPop[ev.babySpawn[0] + ',' + ev.babySpawn[1]] = t; addSparkles(ev.babySpawn[0], ev.babySpawn[1], BABY_COLOR, 8); sfx('grant'); showOnce('baby', '아기 쿠키가 나왔어요 — 줄에 넣으면 구해져요'); }
     if (ev.slimeSpread) { addSparkles(ev.slimeSpread[0], ev.slimeSpread[1], SLIME_COLOR, 5); sfx('blub'); }
     if (ev.chain && ev.chain.length) {
@@ -1149,6 +1162,7 @@
   function stageGoalDesc(i) {
     var g = C.STAGES[i].goal;
     if (g.type === 'color') return FLAVORS[g.color] + ' 젤리 ' + g.n + '개 부수기';
+    if (g.type === 'colors') return g.parts.map(function (pt) { return FLAVORS[pt[0]] + ' ' + pt[1] + '개'; }).join(' + ') + ' 부수기';
     if (g.type === 'rescue') return '소중한 것 ' + g.n + '번 구출하기';
     return g.moves + '수 안에 ' + g.score + '점 만들기';
   }
