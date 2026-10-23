@@ -616,11 +616,6 @@ t('T39', function () {
   ok(!bad, 'T39f 색 임무의 맛은 서로 다른 두 맛, 범위 안');
 });
 
-console.log('\n' + pass + ' passed, ' + fail + ' failed');
-process.exit(fail > 0 ? 1 : 0);
-
-// (구분용 주석 — 세션13 T34~36은 위쪽에 유지)
-
 // T34. 임무-구출
 t('T34', function () {
   var s = C.newGame(131, { mode: 'stage', stage: 1 }); // 구출 1
