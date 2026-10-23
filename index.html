@@ -110,7 +110,7 @@
   /* ── 세션7: 상용 폴리시 — safe-area·스크롤 바운스 방지·탭 하이라이트 제거·짧은 화면 압축 ── */
   html, body { overscroll-behavior:none; }
   * { -webkit-tap-highlight-color:transparent; -webkit-user-select:none; user-select:none; }
-  #wrap { padding-bottom:env(safe-area-inset-bottom); padding-top:max(8px, env(safe-area-inset-top)); }
+  #wrap { padding-bottom:max(env(safe-area-inset-bottom), var(--plat-bottom, 0px)); padding-top:max(8px, env(safe-area-inset-top), var(--plat-top, 0px)); } /* --plat-*: 토스 미니앱 안전 영역(상단 닫기 버튼 포함) */
   @media (max-height: 700px) {
     #mascot { width:44px; height:44px; }
     #tools { grid-template-columns:36px 36px; grid-auto-rows:36px; }
@@ -1095,6 +1095,9 @@
 (function () {
   'use strict';
   var C = window.CORE;
+  // 실행 환경 (10-24): 토스 미니앱 묶음(toss/)은 window.PLATFORM 을 먼저 심는다 — 저장소·뒤로가기·닫기·진동·식별키.
+  // 웹(GitHub Pages)에서는 비어 있고 브라우저 기능을 쓴다.
+  var PLATFORM = window.PLATFORM || null;
 
   // ── 색상 (쿠키/캔디 파스텔 — 오리지널). 세션4: 색이 코어 상태(NCOLORS=5)가 됨 — 마카롱 타겟팅용
   var PIECE_COLORS = ['#FF9EB5', '#FFC15E', '#9BDB8A', '#8FD4F0', '#C9A8F0'];
@@ -1125,10 +1128,10 @@
     var sid = Math.random().toString(36).slice(2, 10), n = 0, t0 = Date.now(), queue = [], sent = [];
     var did = '';
     if (!off) {
-      try { did = (window.localStorage && localStorage.getItem('cp-did')) || ''; } catch (e) {}
+      did = storeGet('cp-did') || '';
       if (!/^[a-z0-9]{12}$/.test(did)) {
         did = (Math.random().toString(36).slice(2, 8) + Math.random().toString(36).slice(2, 8) + '000000000000').slice(0, 12);
-        try { if (window.localStorage) localStorage.setItem('cp-did', did); } catch (e) {}
+        storeSet('cp-did', did);
       }
     }
     var ab = did ? ((parseInt(did.slice(-2), 36) || 0) % 2 ? 'B' : 'A') : ''; // 반반 비교용 그룹 (기기마다 고정)
@@ -1735,8 +1738,14 @@
   }
 
   // ── 로컬 저장 (세션7) — 베스트 스코어·뮤트 설정. file:// 환경 예외 대비 guard.
-  function storeGet(k) { try { return window.localStorage ? localStorage.getItem(k) : null; } catch (e) { return null; } }
-  function storeSet(k, v) { try { if (window.localStorage) localStorage.setItem(k, v); } catch (e) {} }
+  function storeGet(k) {
+    if (PLATFORM && PLATFORM.store) { try { return PLATFORM.store.get(k); } catch (e) { return null; } }
+    try { return window.localStorage ? localStorage.getItem(k) : null; } catch (e) { return null; }
+  }
+  function storeSet(k, v) {
+    if (PLATFORM && PLATFORM.store) { try { PLATFORM.store.set(k, v); } catch (e) {} return; }
+    try { if (window.localStorage) localStorage.setItem(k, v); } catch (e) {}
+  }
 
   // ── 사운드 (세션3·7) — WebAudio 합성음, 에셋 0개(단일 파일 유지). 마스터 게인 + 뮤트 토글(설정 기억).
   var AC = window.AudioContext || window.webkitAudioContext;
@@ -1786,7 +1795,10 @@
     else if (kind === 'blub') { tone(160, 0.12, 'sine', 0.12, d, 90); }
     else if (kind === 'discard') { tone(420, 0.14, 'sine', 0.1, d, 160); tone(140, 0.1, 'square', 0.06, d + 0.1); }
   }
-  function buzz(ms) { if (typeof navigator !== 'undefined' && navigator.vibrate) { try { navigator.vibrate(ms); } catch (e) {} } }
+  function buzz(ms) {
+    if (PLATFORM && PLATFORM.haptic) { try { PLATFORM.haptic(Array.isArray(ms) || ms >= 100 ? 'strong' : 'light'); } catch (e) {} return; }
+    if (typeof navigator !== 'undefined' && navigator.vibrate) { try { navigator.vibrate(ms); } catch (e) {} }
+  }
   // 세션8 (게임 출시 가이드): 백그라운드 전환 시 사운드 즉시 중지, 복귀 시 사용자 설정대로 재생
   if (typeof document.addEventListener === 'function') {
     document.addEventListener('visibilitychange', function () {
@@ -2326,8 +2338,19 @@
   // 종료하기 (세션12 — 작가: "다시 하기와 종료하기만"). 앱인토스 런타임에서는 플랫폼 닫기 API로 교체 예정.
   var quitEl = document.getElementById('quit');
   if (quitEl && quitEl.addEventListener) quitEl.addEventListener('click', function () {
+    if (PLATFORM && PLATFORM.exit) { PLATFORM.exit(); return; }
     try { window.close(); } catch (e) {}
     setTimeout(function () { showToast('탭을 닫으면 종료돼요'); }, 250);
+  });
+
+  // 안드로이드 뒤로가기(토스 미니앱): 열린 창(도감·모드·판 끝)을 먼저 닫고, 없으면 나가기
+  if (PLATFORM && PLATFORM.onBack) PLATFORM.onBack(function () {
+    var ids = ['dex', 'modes'];
+    for (var bi = 0; bi < ids.length; bi++) {
+      var be = document.getElementById(ids[bi]);
+      if (be && be.classList && be.classList.contains('show')) { be.classList.remove('show'); return; }
+    }
+    if (PLATFORM.exit) PLATFORM.exit();
   });
 
   // ── 세션12: 도감 (❓) — 위협·아이템 효과 팝업. 닫기 버튼 좌측 규칙(Toss 다이얼로그) 준수.

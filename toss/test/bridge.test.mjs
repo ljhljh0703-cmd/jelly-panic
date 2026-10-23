@@ -1,0 +1,36 @@
+// bridge.js 시험: 가짜 SDK로 묶은 묶음을 브라우저에서 열어 검수표 항목을 확인한다.
+// node test/bridge.test.mjs  (playwright 필요)
+import { build } from 'esbuild';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+const here = path.dirname(fileURLToPath(import.meta.url));
+const out = path.join(here, '..', 'dist-test');
+fs.rmSync(out, { recursive: true, force: true }); fs.mkdirSync(out, { recursive: true });
+await build({ entryPoints: [path.join(here, '..', 'bridge.js')], bundle: true, format: 'iife', outfile: path.join(out, 'bridge.js'), alias: { '@apps-in-toss/web-framework': path.join(here, 'fake-sdk.js') } });
+let html = fs.readFileSync(path.join(here, '..', 'dist', 'index.html'), 'utf8');
+fs.writeFileSync(path.join(out, 'index.html'), html);
+const { chromium } = await import(process.env.PLAYWRIGHT || '/opt/npm-tools/node_modules/playwright/index.mjs');
+let pass = 0, fail = 0; const ok = (c, n) => { c ? pass++ : fail++; console.log((c ? 'PASS  ' : 'FAIL  ') + n); };
+const b = await chromium.launch();
+const ctx = await b.newContext({ viewport: { width: 390, height: 844 } });
+await ctx.route('**/api/collect', (r) => r.fulfill({ status: 204 }));
+const p = await ctx.newPage(); const errs = []; p.on('pageerror', (e) => errs.push(String(e)));
+const url = 'file://' + path.join(out, 'index.html') + '?notrack';
+await p.goto(url); await p.waitForFunction(() => !!window.__track, null, { timeout: 8000 });
+ok(await p.evaluate(() => window.PLATFORM && window.PLATFORM.name === 'toss'), '토스 환경에서 PLATFORM 심김');
+ok(await p.evaluate(() => getComputedStyle(document.getElementById('wrap')).paddingTop === '54px'), '안전 영역 위쪽 54px 만큼 띄움');
+await p.evaluate(() => window.PLATFORM.store.set('cp-best', '777'));
+await p.waitForTimeout(500);
+ok(await p.evaluate(() => JSON.parse(JSON.parse(localStorage.getItem('__fake_native_storage__'))['jelly-panic-store'])['cp-tosskey'] === 'fakehash123'), '식별키 발급·네이티브 저장');
+await p.reload(); await p.waitForFunction(() => !!window.__track, null, { timeout: 8000 });
+ok(await p.evaluate(() => window.PLATFORM.store.get('cp-best') === '777'), '다시 열어도 기록 유지(네이티브 저장소)');
+await p.click('#help'); await p.waitForTimeout(200);
+await p.evaluate(() => window.__fakeBack());
+ok(await p.evaluate(() => !document.getElementById('dex').classList.contains('show') && !window.__closed), '뒤로가기: 열린 도감부터 닫음');
+await p.evaluate(() => window.__fakeBack());
+ok(await p.evaluate(() => window.__closed === 1), '뒤로가기: 열린 창 없으면 미니앱 닫기');
+ok(errs.length === 0, '오류 0 ' + JSON.stringify(errs.slice(0, 2)));
+await b.close();
+fs.rmSync(out, { recursive: true, force: true });
+console.log('\n' + pass + ' passed, ' + fail + ' failed'); process.exit(fail ? 1 : 0);

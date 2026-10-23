@@ -1,1 +1,6 @@
 _dev/
+toss/node_modules/
+toss/dist/
+toss/*.ait
+data/
+toss/dist-test/
