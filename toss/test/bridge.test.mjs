@@ -16,7 +16,7 @@ const b = await chromium.launch();
 const ctx = await b.newContext({ viewport: { width: 390, height: 844 } });
 await ctx.route('**/api/collect', (r) => r.fulfill({ status: 204 }));
 const p = await ctx.newPage(); const errs = []; p.on('pageerror', (e) => errs.push(String(e)));
-const url = 'file://' + path.join(out, 'index.html') + '?notrack';
+const url = 'file://' + path.join(out, 'index.html'); // 수집 서버 요청은 위에서 가로챔
 await p.goto(url); await p.waitForFunction(() => !!window.__track, null, { timeout: 8000 });
 ok(await p.evaluate(() => window.PLATFORM && window.PLATFORM.name === 'toss'), '토스 환경에서 PLATFORM 심김');
 ok(await p.evaluate(() => getComputedStyle(document.getElementById('wrap')).paddingTop === '54px'), '안전 영역 위쪽 54px 만큼 띄움');
@@ -30,6 +30,7 @@ await p.evaluate(() => window.__fakeBack());
 ok(await p.evaluate(() => !document.getElementById('dex').classList.contains('show') && !window.__closed), '뒤로가기: 열린 도감부터 닫음');
 await p.evaluate(() => window.__fakeBack());
 ok(await p.evaluate(() => window.__closed === 1), '뒤로가기: 열린 창 없으면 미니앱 닫기');
+ok(await p.evaluate(() => (window.__logs || []).includes('jp_start')), '토스 행동 기록에 판 시작이 남음');
 ok(errs.length === 0, '오류 0 ' + JSON.stringify(errs.slice(0, 2)));
 await b.close();
 fs.rmSync(out, { recursive: true, force: true });

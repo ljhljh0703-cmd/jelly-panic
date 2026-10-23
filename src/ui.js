@@ -54,6 +54,7 @@
       var e = { v: 2, sid: sid, did: did, ab: ab, ver: BUILD + (EXPERIMENT.id ? '-' + EXPERIMENT.id : ''), n: n++, sec: Math.round((Date.now() - t0) / 1000), type: type, src: src, ad: ad };
       for (var k in data) if (Object.prototype.hasOwnProperty.call(data, k)) e[k] = data[k];
       queue.push(e); sent.push(e);
+      if (PLATFORM && PLATFORM.log) { var lp = {}; for (var lk in e) if (e[lk] != null && lk !== 'sid' && lk !== 'did') lp[lk] = e[lk]; PLATFORM.log('jp_' + type, lp); }
       if (queue.length >= 10 || type === 'end' || type === 'leave') flush();
     }
     if (document.addEventListener) document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') flush(); });
@@ -1243,6 +1244,8 @@
   document.getElementById('restart').addEventListener('click', function () { reset((Date.now() % 1000000) | 0); });
   document.getElementById('replay').addEventListener('click', function () { track.restart(state && state.overCause); reset((Date.now() % 1000000) | 0); });
   // 종료하기 (세션12 — 작가: "다시 하기와 종료하기만"). 앱인토스 런타임에서는 플랫폼 닫기 API로 교체 예정.
+  var rankBtn = document.getElementById('rank');
+  if (rankBtn && rankBtn.addEventListener) rankBtn.addEventListener('click', function () { if (PLATFORM && PLATFORM.openRanking) PLATFORM.openRanking(); });
   var quitEl = document.getElementById('quit');
   if (quitEl && quitEl.addEventListener) quitEl.addEventListener('click', function () {
     if (PLATFORM && PLATFORM.exit) { PLATFORM.exit(); return; }
@@ -1360,6 +1363,9 @@
   function endGame() {
     track.end(state);
     var won = state.overCause === 'clear'; // 세션13: 임무 완수
+    if (PLATFORM && PLATFORM.submitScore && state.mode === 'classic' && state.score > 0) PLATFORM.submitScore(state.score);
+    var rankEl = document.getElementById('rank');
+    if (rankEl && rankEl.style) rankEl.style.display = PLATFORM && PLATFORM.openRanking && state.mode === 'classic' ? '' : 'none';
     var om = document.getElementById('overmascot');
     if (om && om.classList) { if (won) om.classList.add('win'); else om.classList.remove('win'); }
     if (won) { sfx('rescue'); buzz([60, 40, 80]); setMascot('cheer'); }

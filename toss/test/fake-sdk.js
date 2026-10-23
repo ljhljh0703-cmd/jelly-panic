@@ -10,3 +10,6 @@ export const graniteEvent = { addEventListener: (name, { onEvent }) => { window.
 export const closeView = () => { window.__closed = (window.__closed || 0) + 1; };
 export const SafeArea = { get: () => ({ top: 54, bottom: 20, left: 0, right: 0 }), subscribe: () => () => {} };
 export const generateHapticFeedback = (o) => { (window.__haptics = window.__haptics || []).push(o.type); };
+export const eventLog = async (o) => { (window.__logs = window.__logs || []).push(o.log_name); };
+export const submitGameCenterLeaderBoardScore = Object.assign(async (o) => { (window.__scores = window.__scores || []).push(o.score); return { statusCode: 'SUCCESS' }; }, { isSupported: () => true });
+export const openGameCenterLeaderboard = Object.assign(async () => { window.__rankOpened = (window.__rankOpened || 0) + 1; }, { isSupported: () => true });
