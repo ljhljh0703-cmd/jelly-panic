@@ -272,7 +272,7 @@
     else if (v === SLIME) { ev.gained += 10; ev.slimeKilled = true; ev.broke.push([rr, cc, 'slime']); }
     else if (v === BABY) {
       if (state.mode === 'defense') { defuseAt(state, ev, rr, cc); return; } // 디펜스: 고정 보호 대상 — 아이템으로도 제거 불가
-      ev.gained += 100; ev.rescued++;
+      ev.gained += 100; ev.rescued++; ev.rescuedAt = [rr, cc];
     }
     else { defuseAt(state, ev, rr, cc); return; } // EMPTY: 예고만 해체
     state.grid[rr][cc] = EMPTY;
@@ -387,7 +387,7 @@
         if (cv === JELLY) { jellyBonus += 5; ev.jellyCleared++; }
         if (cv === BABY) {
           if (state.mode === 'defense') continue; // 디펜스: 줄은 지워져도 보호 대상은 영구 고정 (구출 없음)
-          step.gained += 100; ev.rescued++; // 구출!
+          step.gained += 100; ev.rescued++; ev.rescuedAt = [rr3, cc3]; // 구출!
         }
         if (cv === BLOCK && state.colorCleared && state.colors[rr3][cc3] != null) state.colorCleared[state.colors[rr3][cc3]]++; // 임무 추적
         state.grid[rr3][cc3] = EMPTY;

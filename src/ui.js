@@ -1046,7 +1046,7 @@
     });
     if (ev.fizzled) ev.fizzled.forEach(function (p) { addSparkles(p[0], p[1], '#C9C9C9', 5); }); // 설탕 예고 소멸 포프
     if (ev.broke) ev.broke.forEach(function (p) { addSparkles(p[0], p[1], p[2] === 'crust' ? CRUST_COLOR : SLIME_COLOR, 8); addFloat(p[0], p[1], p[2] === 'crust' ? '+15' : '+10', '#8D6E63'); });
-    if (ev.rescued > 0) { runRescued += ev.rescued; sfx('rescue'); buzz([60, 40, 80]); addFloat(3, 3, '+100', '#FF6E9C'); setMascot('cheer', 1400); }
+    if (ev.rescued > 0) { runRescued += ev.rescued; sfx('rescue'); buzz([60, 40, 80]); var ra = ev.rescuedAt || [3, 3]; addFloat(ra[0], ra[1], '+100', '#FF6E9C'); addSparkles(ra[0], ra[1], '#FF9EB5', 14); /* 구출한 자리에서 (10-24: 판 가운데 고정이던 것) */ setMascot('cheer', 1400); }
     if (state.combo > runMaxCombo) runMaxCombo = state.combo;
     if (ev.waveStart) {
       showToast(ev.waveStart + '번째 습격! 까마귀가 몰려와요' + (ev.waveBonus ? ' (버틴 보너스 +' + ev.waveBonus + ')' : ''));
@@ -1429,8 +1429,8 @@
   if (/[?&]autochain=1/.test(location.search)) {
     setTimeout(function () {
       reset(30);
-      for (var cc = 0; cc < 7; cc++) { state.grid[7][cc] = C.BLOCK; state.grid[6][cc] = C.BLOCK; colorGrid[7][cc] = '#9BDB8A'; colorGrid[6][cc] = '#8FD4F0'; }
-      state.grid[5][7] = C.BLOCK; colorGrid[5][7] = '#FF9EB5';
+      for (var cc = 0; cc < 7; cc++) { state.grid[7][cc] = C.BLOCK; state.grid[6][cc] = C.BLOCK; state.colors[7][cc] = 2; state.colors[6][cc] = 3; } // 10-24: 없어진 colorGrid 대신 state.colors
+      state.grid[5][7] = C.BLOCK; state.colors[5][7] = 0;
       state.tray = [0, 0, 0];
       drawTray();
       setTimeout(function () { doPlace(0, 7, 7); }, 2500);
