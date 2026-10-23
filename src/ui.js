@@ -12,10 +12,12 @@
   function cellColor(r, c) { var ci = state.colors[r][c]; return ci == null ? '#FFC15E' : PIECE_COLORS[ci % PIECE_COLORS.length]; }
 
 
-  // ── 익명 기록 (광고 성과 보기용) ──
-  // 보내는 것: 탭마다 새로 뽑는 무작위 번호, 광고 꼬리표(src·ad), 판 시작·첫 수·판 끝·다시 하기와 그 판의 숫자(점수·놓은 수·걸린 초).
-  // 보내지 않는 것: 이름·사진·기기 식별자·쿠키·저장소 값. 사진을 등록했는지 여부도 보내지 않는다.
-  // 수집 주소(TRACK_URL)가 비어 있으면 아무것도 보내지 않는다. Do Not Track·Global Privacy Control·?notrack 이면 끈다.
+  // ── 익명 기록 (광고 성과·다시 오는 비율 보기용) ──
+  // 보내는 것: 탭마다 새로 뽑는 무작위 번호(sid), 이 기기에서 처음 한 번 뽑아 기기 안에 저장해 두는 무작위 번호(did, 다음 날 다시 왔는지 세기용),
+  //   광고 꼬리표(src·ad), 판 시작·첫 수·판 끝·다시 하기·판 도중 나감과 그 판의 숫자(모드·스테이지·오늘의 판 날짜·점수·놓은 수·걸린 초), 게임 판번호(ver).
+  // 보내지 않는 것: 이름·사진·광고 ID 같은 기기 고유 번호·쿠키·IP 주소. 사진을 등록했는지 여부도 보내지 않는다. did는 무작위 번호라 사람을 알아낼 수 없다.
+  // 수집 주소(TRACK_URL)가 비어 있으면 아무것도 보내지 않는다. Do Not Track·Global Privacy Control·?notrack 이면 끄고, 그때는 did도 만들지 않는다.
+  var BUILD = '20261024'; // 공개판 번호 — 반반 비교·고친 전후 비교에 쓴다
   var TRACK_URL = 'https://jelly-panic-collector.vercel.app/api/collect';
   var track = (function () {
     var q = location.search || '';
@@ -25,7 +27,16 @@
     var nav = window.navigator || {};
     var off = nav.doNotTrack === '1' || nav.globalPrivacyControl === true || /[?&]notrack\b/.test(q);
     var sid = Math.random().toString(36).slice(2, 10), n = 0, t0 = Date.now(), queue = [], sent = [];
-    var game = { t: t0, moved: false };
+    var did = '';
+    if (!off) {
+      try { did = (window.localStorage && localStorage.getItem('cp-did')) || ''; } catch (e) {}
+      if (!/^[a-z0-9]{12}$/.test(did)) {
+        did = (Math.random().toString(36).slice(2, 8) + Math.random().toString(36).slice(2, 8) + '000000000000').slice(0, 12);
+        try { if (window.localStorage) localStorage.setItem('cp-did', did); } catch (e) {}
+      }
+    }
+    var ab = did ? ((parseInt(did.slice(-2), 36) || 0) % 2 ? 'B' : 'A') : ''; // 반반 비교용 그룹 (기기마다 고정)
+    var game = { t: t0, moved: false, left: false };
     function flush() {
       if (off || !TRACK_URL || !queue.length) return;
       var body = JSON.stringify(queue.splice(0, queue.length));
@@ -34,19 +45,24 @@
     }
     function ev(type, data) {
       if (off) return;
-      var e = { v: 1, sid: sid, n: n++, sec: Math.round((Date.now() - t0) / 1000), type: type, src: src, ad: ad };
+      var e = { v: 2, sid: sid, did: did, ab: ab, ver: BUILD, n: n++, sec: Math.round((Date.now() - t0) / 1000), type: type, src: src, ad: ad };
       for (var k in data) if (Object.prototype.hasOwnProperty.call(data, k)) e[k] = data[k];
       queue.push(e); sent.push(e);
-      if (queue.length >= 10 || type === 'end') flush();
+      if (queue.length >= 10 || type === 'end' || type === 'leave') flush();
     }
     if (document.addEventListener) document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') flush(); });
     if (window.addEventListener) window.addEventListener('pagehide', flush);
-    window.__track = { events: sent, off: off };
+    window.__track = { events: sent, off: off, did: did, ab: ab };
+    function where(st) { return { mode: st.mode, stage: st.stage != null ? st.stage + 1 : null, day: st.dailyKey ? +st.dailyKey : null }; }
+    function withWhere(st, data) { var w = where(st); for (var k in data) w[k] = data[k]; return w; }
     return {
-      start: function (mode, seed) { game = { t: Date.now(), moved: false }; ev('start', { mode: mode, seed: seedFromUrl ? seed : null }); seedFromUrl = false; },
-      move: function (mode) { if (game.moved) return; game.moved = true; ev('first_move', { mode: mode, after: Math.round((Date.now() - game.t) / 1000) }); },
-      end: function (st) { ev('end', { mode: st.mode, cause: st.overCause, score: st.score, placements: st.placements, rescued: runRescued, after: Math.round((Date.now() - game.t) / 1000) }); },
-      restart: function (cause) { ev('restart', { prev: cause || null }); }
+      ab: ab,
+      start: function (st, seed) { game = { t: Date.now(), moved: false, left: false }; ev('start', withWhere(st, { seed: seedFromUrl ? seed : null })); seedFromUrl = false; },
+      move: function (st) { if (game.moved) return; game.moved = true; ev('first_move', withWhere(st, { after: Math.round((Date.now() - game.t) / 1000) })); },
+      end: function (st) { ev('end', withWhere(st, { cause: st.overCause, score: st.score, placements: st.placements, rescued: runRescued, after: Math.round((Date.now() - game.t) / 1000) })); },
+      restart: function (cause) { ev('restart', { prev: cause || null }); },
+      // 판 도중 나감: 화면을 떠날 때 판이 끝나지 않았으면 한 번만 (어디서 그만두는지 보기용)
+      leave: function (st) { if (game.left || !st || st.over) return; game.left = true; ev('leave', withWhere(st, { score: st.score, placements: st.placements, after: Math.round((Date.now() - game.t) / 1000) })); }
     };
   })();
 
@@ -66,9 +82,27 @@
   }
 
   var currentMode = 'classic', currentStage = 0; // 세션13: 모드 상태
+  // ── 오늘의 임무 (2026-10-24 작가 결정: 날마다 임무 하나, 도전 무제한, 최고 기록 = 가장 적은 수로 깬 기록) ──
+  function kstKey(ms) { var d = new Date((ms || Date.now()) + 9 * 3600 * 1000); return d.getUTCFullYear() + ('0' + (d.getUTCMonth() + 1)).slice(-2) + ('0' + d.getUTCDate()).slice(-2); } // 모두 같은 날 같은 판: 한국 시간 기준
+  function dayLabel(key) { return (+key.slice(4, 6)) + '월 ' + (+key.slice(6, 8)) + '일'; }
+  function dailyRec(key) { try { var o = JSON.parse(storeGet('cp-daily-' + key) || '{}'); return { best: typeof o.best === 'number' ? o.best : null, tries: o.tries | 0 }; } catch (e) { return { best: null, tries: 0 }; } }
+  function dailySave(key, rec) { storeSet('cp-daily-' + key, JSON.stringify(rec)); }
+  function updateDailyChip() {
+    var el = document.getElementById('dailychip');
+    if (!el || !el.style) return;
+    if (currentMode === 'daily') { el.style.display = 'none'; return; }
+    var dk = kstKey(), rec = dailyRec(dk);
+    el.textContent = '🗓️ 오늘의 임무 · ' + dayLabel(dk) + (rec.best != null ? ' · 내 최고 ' + rec.best + '수' : '');
+    el.style.display = '';
+  }
 
   function reset(seed) {
-    state = C.newGame(seed, { mode: currentMode, stage: currentStage });
+    if (currentMode === 'daily') {
+      var dk = kstKey();
+      state = C.newGame(0, { mode: 'daily', daily: C.daily(dk) });
+      seed = state.seed;
+      var dr = dailyRec(dk); dr.tries++; dailySave(dk, dr);
+    } else state = C.newGame(seed, { mode: currentMode, stage: currentStage });
     fx = []; cellPop = {}; fallAnim = {}; shakeT = 0;
     runRescued = 0; runMaxCombo = 0;
     var nb = document.getElementById('newbest');
@@ -86,7 +120,8 @@
     updateTier();
     updateStatus();
     drawTray();
-    track.start(currentMode, seed);
+    track.start(state, seed);
+    updateDailyChip();
     if (!firstPlaceDone) showHint();
   }
 
@@ -682,7 +717,7 @@
     if (!el) return;
     var parts = [], hasBaby = false;
     // 세션13: 임무/디펜스 진행 — 1순위 신호
-    if (state.mode === 'stage' && state.goal) {
+    if (state.goal) { // 스테이지·오늘의 임무 공통
       var g = state.goal;
       if (g.type === 'color') parts.push('🎯 ' + FLAVOR_DOT[g.color] + FLAVORS[g.color] + ' ' + Math.min(state.colorCleared[g.color], g.n) + '/' + g.n);
       else if (g.type === 'colors') parts.push('🎯 ' + g.parts.map(function (pt) { return FLAVOR_DOT[pt[0]] + FLAVORS[pt[0]] + ' ' + Math.min(state.colorCleared[pt[0]], pt[1]) + '/' + pt[1]; }).join(' · '));
@@ -937,7 +972,7 @@
   // 이벤트 → 연출 공용 처리 (배치·버리기 공용 — ev가 전부 결정)
   function juice(ev) {
     var t = performance.now();
-    track.move(currentMode);
+    track.move(state);
     if (!firstPlaceDone) { firstPlaceDone = true; hideHint(); }
     ev.placed.forEach(function (p) { cellPop[p[0] + ',' + p[1]] = t; });
     var itemGain = ev.gained - (ev.chain.length ? ev.chain.reduce(function (a, s2) { return a + s2.gained; }, 0) : 0);
@@ -1067,7 +1102,9 @@
     x.fillStyle = grad; x.fillRect(0, 0, W, W);
     x.textAlign = 'center';
     x.fillStyle = '#6B4226'; x.font = 'bold 76px Jua, sans-serif';
-    x.fillText(saved ? '소중한 걸 지켰다!' : '괴식 젤리 범벅이 됐다…', W / 2, 150);
+    var isDaily = state.mode === 'daily' && state.dailyKey;
+    if (isDaily) { saved = state.overCause === 'clear'; x.fillText(dayLabel(state.dailyKey) + ' 오늘의 임무', W / 2, 150); }
+    else x.fillText(saved ? '소중한 걸 지켰다!' : '괴식 젤리 범벅이 됐다…', W / 2, 150);
     var img = photoImgs[0];
     x.save();
     x.beginPath(); x.arc(W / 2, 470, 235, 0, 7); x.clip();
@@ -1076,6 +1113,16 @@
     x.restore();
     x.lineWidth = 14; x.strokeStyle = saved ? '#FF6E9C' : '#7A4E2D';
     x.beginPath(); x.arc(W / 2, 470, 235, 0, 7); x.stroke();
+    if (isDaily) {
+      var drsc = dailyRec(state.dailyKey);
+      x.font = '56px Jua, sans-serif'; x.fillStyle = saved ? '#FF6E9C' : '#7A4E2D';
+      x.fillText(saved ? state.placements + '수 만에 완수!' : '아직 못 깼다…', W / 2, 790);
+      x.font = '44px Jua, sans-serif'; x.fillStyle = '#8D6B4A';
+      x.fillText(goalDesc(state.goal).replace(/[🔴🟠🟢🔵🟣]/gu, '') + (drsc.best != null ? ' · 내 최고 ' + drsc.best + '수' : ''), W / 2, 880);
+      x.font = '38px Jua, sans-serif'; x.fillStyle = '#C9A87F';
+      x.fillText('지켜줘! 젤리 패닉 — 같은 판, 몇 수 만에 깰 수 있어?', W / 2, 985);
+      return cv;
+    }
     if (!saved) {
       [[390, 330, '#9BDB8A'], [700, 370, '#C9A87F'], [520, 640, '#B5C7F5'], [660, 590, '#FFE066'], [430, 560, '#8AE0C8']].forEach(function (b) {
         x.fillStyle = b[2]; x.globalAlpha = 0.85;
@@ -1185,8 +1232,8 @@
   }
   // ── 세션13: 모드 선택 (🎮) ──
   function unlockedStage() { return Math.min(parseInt(storeGet('cp-stage') || '0', 10) || 0, C.STAGES.length - 1); }
-  function stageGoalDesc(i) {
-    var g = C.STAGES[i].goal;
+  function stageGoalDesc(i) { return goalDesc(C.STAGES[i].goal); }
+  function goalDesc(g) {
     if (g.type === 'color') return FLAVOR_DOT[g.color] + FLAVORS[g.color] + ' 젤리 ' + g.n + '개 부수기';
     if (g.type === 'colors') return g.parts.map(function (pt) { return FLAVOR_DOT[pt[0]] + FLAVORS[pt[0]] + ' ' + pt[1] + '개'; }).join(' + ') + ' 부수기';
     if (g.type === 'rescue') return '소중한 것 ' + g.n + '번 구출하기';
@@ -1199,15 +1246,20 @@
     if (mp && mp.classList) mp.classList.remove('show');
     reset((Date.now() % 1000000) | 0);
     if (m === 'stage') showToast('임무: ' + stageGoalDesc(currentStage));
+    else if (m === 'daily') showToast('오늘의 임무: ' + goalDesc(state.goal) + ' — 적은 수로 깰수록 좋아요');
     else if (m === 'defense') showToast('한가운데 소중한 것 — 까마귀가 몰려와요');
   }
   var modeBtnEl = document.getElementById('mode');
   if (modeBtnEl && modeBtnEl.addEventListener) modeBtnEl.addEventListener('click', function () {
     var mp = document.getElementById('modes'), si = document.getElementById('stageinfo');
     if (si) si.textContent = '스테이지 ' + (unlockedStage() + 1) + ' — ' + stageGoalDesc(unlockedStage());
+    var di = document.getElementById('dailyinfo');
+    if (di) { var dk = kstKey(), drc = dailyRec(dk); di.textContent = dayLabel(dk) + ' — ' + goalDesc(C.daily(dk).goal) + (drc.best != null ? ' · 내 최고 ' + drc.best + '수' : ''); }
     if (mp && mp.classList) mp.classList.add('show');
   });
-  ['classic', 'stage', 'defense'].forEach(function (m) {
+  var dailyChipEl = document.getElementById('dailychip');
+  if (dailyChipEl && dailyChipEl.addEventListener) dailyChipEl.addEventListener('click', function () { ensureAudio(); pickMode('daily'); });
+  ['daily', 'classic', 'stage', 'defense'].forEach(function (m) {
     var el = document.getElementById('mode-' + m);
     if (el && el.addEventListener) el.addEventListener('click', function () { pickMode(m); });
   });
@@ -1227,11 +1279,21 @@
   function endGame() {
     track.end(state);
     var won = state.overCause === 'clear'; // 세션13: 임무 완수
+    var om = document.getElementById('overmascot');
+    if (om && om.classList) { if (won) om.classList.add('win'); else om.classList.remove('win'); }
     if (won) { sfx('rescue'); buzz([60, 40, 80]); setMascot('cheer'); }
     else { sfx('over'); setMascot('ko'); }
     // 사인 가독 (Pillar 3) + 행동 우선 카피 (Toss 게이트: 감정 압박 대신 원인)
     var cause;
-    if (won) {
+    var rpD = document.getElementById('replay');
+    if (state.mode === 'daily') {
+      var dk2 = state.dailyKey, drec = dailyRec(dk2);
+      if (won && (drec.best == null || state.placements < drec.best)) { drec.best = state.placements; dailySave(dk2, drec); state.dailyNewBest = true; }
+      if (rpD) rpD.textContent = '다시 도전';
+    }
+    if (won && state.mode === 'daily') {
+      cause = '오늘의 임무 완수! ' + state.placements + '수 만에';
+    } else if (won) {
       cause = '스테이지 ' + (state.stage + 1) + ' 임무 완수!';
       var unlocked = parseInt(storeGet('cp-stage') || '0', 10) || 0;
       var next = Math.min(state.stage + 1, C.STAGES.length - 1);
@@ -1259,20 +1321,32 @@
     var statsEl = document.getElementById('overstats');
     if (statsEl) statsEl.textContent = '🐥 구출 ' + runRescued + ' · 🔥 최대 콤보 ×' + runMaxCombo + ' · 🏆 최고 ' + best;
     var nb = document.getElementById('newbest');
-    if (nb && nb.classList && isNew && state.score > 0) nb.classList.add('show');
+    if (state.mode === 'daily') {
+      var drs = dailyRec(state.dailyKey);
+      if (statsEl) statsEl.textContent = '🗓️ ' + dayLabel(state.dailyKey) + ' 내 최고 ' + (drs.best != null ? drs.best + '수' : '아직 없음') + ' · 도전 ' + drs.tries + '번';
+      if (nb) nb.textContent = '🏆 오늘 최고 기록!';
+      if (nb && nb.classList && state.dailyNewBest) nb.classList.add('show');
+    } else {
+      if (nb) nb.textContent = '🏆 새 기록!';
+      if (nb && nb.classList && isNew && state.score > 0) nb.classList.add('show');
+    }
     // 세션10: 사진 미등록자 넛지 (세션당 1회 — 개인화가 리텐션 핵심 훅)
     if (!photoImgs.length) showOnce('photo-nudge', '📷 소중한 것 사진을 등록하면 지키는 맛이 달라져요');
     // 점수 카운트업 연출
     var scoreEl = document.getElementById('overscore');
-    var target = state.score, shown = 0, steps = Math.max(1, Math.min(30, target));
-    scoreEl.textContent = '0';
+    var dailyWin = state.mode === 'daily' && won; // 오늘의 임무는 '몇 수 만에'가 기록 — 큰 숫자도 수로
+    var target = dailyWin ? state.placements : state.score, shown = 0, steps = Math.max(1, Math.min(30, target)), unit = dailyWin ? '수' : '';
+    scoreEl.textContent = '0' + unit;
     var iv = setInterval(function () {
       shown += Math.ceil(target / steps);
       if (shown >= target) { shown = target; clearInterval(iv); if (isNew && target > 0) sfx('rescue'); }
-      scoreEl.textContent = String(shown);
+      scoreEl.textContent = String(shown) + unit;
     }, 26);
     setTimeout(function () { document.getElementById('over').classList.add('show'); }, 550);
   }
+
+  if (document.addEventListener) document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') track.leave(state); });
+  if (window.addEventListener) window.addEventListener('pagehide', function () { track.leave(state); });
 
   // ── 루프 ──
   function loop(t) { drawBoard(t); requestAnimationFrame(loop); }

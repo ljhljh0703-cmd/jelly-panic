@@ -77,16 +77,49 @@
     { goal: { type: 'colors', parts: [[0, 15], [1, 15], [2, 15]] }, diffBoost: 62 }  // 10. 3색 조합
   ];
   var WAVE_EVERY = 10; // 세션14: 디펜스 웨이브 주기 (배치 수)
+
+  // ── 오늘의 임무 (2026-10-24 작가 결정: 날마다 임무 하나, 도전 무제한, 최고 기록) ──
+  // 날짜 → 같은 시작 판(seed)과 같은 임무. 임무 틀은 자동 플레이로 깨는 비율을 맞춰 둔 것만 쓴다(날마다 난이도가 튀지 않게).
+  // 색 임무의 맛은 날짜로 돌린다. c0·c1 = 그날 고른 맛 두 개.
+  var DAILY_TEMPLATES = [
+    { kind: 'colors2', n: 10, diffBoost: 10 },
+    { kind: 'rescue', n: 2, diffBoost: 30 },
+    { kind: 'score', score: 500, moves: 30, diffBoost: 20 },
+    { kind: 'colors1', n: 16, diffBoost: 15 },
+    { kind: 'rescue', n: 3, diffBoost: 40 },
+    { kind: 'score', score: 800, moves: 38, diffBoost: 35 }
+  ];
+  function hashStr(str) { // FNV-1a 32bit
+    var h = 0x811c9dc5;
+    for (var i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 0x01000193); }
+    return h >>> 0;
+  }
+  // key: 'YYYYMMDD' 문자열 → { key, seed, template, goal, diffBoost }
+  function daily(key) {
+    key = String(key);
+    var h = hashStr('jelly-daily-' + key);
+    var t = DAILY_TEMPLATES[h % DAILY_TEMPLATES.length];
+    var c0 = (h >>> 8) % NCOLORS, c1 = (c0 + 1 + ((h >>> 16) % (NCOLORS - 1))) % NCOLORS;
+    var goal;
+    if (t.kind === 'colors2') goal = { type: 'colors', parts: [[c0, t.n], [c1, t.n]] };
+    else if (t.kind === 'colors1') goal = { type: 'colors', parts: [[c0, t.n]] };
+    else if (t.kind === 'rescue') goal = { type: 'rescue', n: t.n };
+    else goal = { type: 'score', score: t.score, moves: t.moves };
+    return { key: key, seed: (hashStr('jelly-seed-' + key) % 999983) + 1, template: DAILY_TEMPLATES.indexOf(t), goal: goal, diffBoost: t.diffBoost };
+  }
   var DEFENSE_BABY = [3, 4]; // 세션13: 디펜스 모드 — 중앙 영구 고정 보호 대상 (작가 예시)
 
-  // opts: { mode: 'classic'|'stage'|'defense', stage: 0-based }
+  // opts: { mode: 'classic'|'stage'|'defense'|'daily', stage: 0-based, daily: daily(key) 결과 }
   function newGame(seed, opts) {
     opts = opts || {};
+    var dly = opts.mode === 'daily' ? (opts.daily || daily(opts.dailyKey || '0')) : null;
+    if (dly) seed = dly.seed;
     var state = {
       mode: opts.mode || 'classic',
       stage: opts.mode === 'stage' ? (opts.stage | 0) : null,
-      goal: opts.mode === 'stage' ? STAGES[Math.min(opts.stage | 0, STAGES.length - 1)].goal : null,
-      diffBoost: opts.mode === 'stage' ? STAGES[Math.min(opts.stage | 0, STAGES.length - 1)].diffBoost : (opts.mode === 'defense' ? 10 : 0),
+      goal: dly ? dly.goal : opts.mode === 'stage' ? STAGES[Math.min(opts.stage | 0, STAGES.length - 1)].goal : null,
+      diffBoost: dly ? dly.diffBoost : opts.mode === 'stage' ? STAGES[Math.min(opts.stage | 0, STAGES.length - 1)].diffBoost : (opts.mode === 'defense' ? 10 : 0),
+      dailyKey: dly ? dly.key : null,
       colorCleared: [0, 0, 0, 0, 0], // 색별 파괴 누계 (임무 추적)
       totalRescued: 0,
       crowsDefused: 0,               // 디펜스 방어 카운터
@@ -122,7 +155,7 @@
 
   // 세션13: 임무 판정 — 달성 시 즉시 승리 종료 (overCause 'clear')
   function checkGoal(state) {
-    if (state.mode !== 'stage' || !state.goal || state.over) return;
+    if (!state.goal || state.over) return; // 스테이지·오늘의 임무 공통
     var g = state.goal, done = false;
     if (g.type === 'colors') done = g.parts.every(function (p) { return state.colorCleared[p[0]] >= p[1]; });
     else if (g.type === 'rescue') done = state.totalRescued >= g.n;
@@ -130,7 +163,7 @@
     if (done) { state.over = true; state.overCause = 'clear'; }
   }
   function checkMovesLimit(state) {
-    if (state.mode !== 'stage' || !state.goal || state.over) return;
+    if (!state.goal || state.over) return;
     if (state.goal.type === 'score' && state.placements >= state.goal.moves) {
       state.over = true; state.overCause = 'moves'; // 수 소진 (사인 가독)
     }
@@ -759,7 +792,7 @@
     N: N, EMPTY: EMPTY, BLOCK: BLOCK, JELLY: JELLY, HOLE: HOLE,
     BABY: BABY, CRUST: CRUST, SLIME: SLIME, NCOLORS: NCOLORS,
     BOMB: BOMB, ROCKET_H: ROCKET_H, ROCKET_V: ROCKET_V, MACARON: MACARON,
-    SHAPES: SHAPES, SPAWN_EVERY: SPAWN_EVERY, COUNTDOWN: COUNTDOWN, STAGES: STAGES, DEFENSE_BABY: DEFENSE_BABY, WAVE_EVERY: WAVE_EVERY,
+    SHAPES: SHAPES, SPAWN_EVERY: SPAWN_EVERY, COUNTDOWN: COUNTDOWN, STAGES: STAGES, DAILY_TEMPLATES: DAILY_TEMPLATES, daily: daily, DEFENSE_BABY: DEFENSE_BABY, WAVE_EVERY: WAVE_EVERY,
     difficulty: difficulty, previewPlace: previewPlace, discard: discard,
     newGame: newGame, canPlace: canPlace, place: place, anyMoveExists: anyMoveExists,
     ringBell: ringBell, shapeCells: shapeCells, threatAt: threatAt, snapshot: snapshot, countCells: countCells,
