@@ -1899,6 +1899,10 @@
   }
 
   // ── FX (파티클 + 점수 플로트) — delayMs: 연쇄 단계별 시차 연출용 ──
+  // 줄 지우기 번쩍임(10-24): 지운 칸 위에 흰 빛이 잠깐 — 크림색 판 위 노란 점만으로는 지운 줄이 잘 안 보였음
+  function addFlash(cells, delayMs) {
+    fx.push({ kind: 'flash', cells: cells.slice(), t0: performance.now() + (delayMs || 0), life: 260 });
+  }
   function addSparkles(r, c, color, n, delayMs) {
     for (var i = 0; i < n; i++) {
       fx.push({
@@ -1914,11 +1918,27 @@
     fx.push({ kind: 'f', r: r, c: c, x: PAD + c * CS + CS / 2, y: PAD + r * CS - stack * 22, text: text, color: color, t0: t0, life: 900 });
   }
   function drawFx(t) {
+    // 번쩍임을 먼저(아래) 그리고, 반짝이·숫자를 그 위에
+    for (var pass = 0; pass < 2; pass++)
     for (var i = fx.length - 1; i >= 0; i--) {
       var f = fx[i], dt = t - f.t0;
+      if ((f.kind === 'flash') !== (pass === 0)) continue;
       if (dt < 0) continue; // 아직 시작 전(연쇄 시차)
       if (dt > f.life) { fx.splice(i, 1); continue; }
       var p = dt / f.life;
+      if (f.kind === 'flash') {
+        var fa = 1 - p;
+        bctx.save();
+        bctx.globalAlpha = 0.85 * fa;
+        bctx.fillStyle = '#FFFDF2';
+        for (var fc = 0; fc < f.cells.length; fc++) {
+          var fr = f.cells[fc][0], fcc = f.cells[fc][1], grow = (1 - fa) * CS * 0.12;
+          rrect(bctx, PAD + fcc * CS + GAP - grow, PAD + fr * CS + GAP - grow, CS - GAP * 2 + grow * 2, CS - GAP * 2 + grow * 2, CS * 0.25);
+          bctx.fill();
+        }
+        bctx.restore();
+        continue;
+      }
       if (f.kind === 'p') {
         var px = f.x + f.vx * dt / 16, py = f.y + f.vy * dt / 16 + 0.003 * dt * dt / 16;
         bctx.globalAlpha = 1 - p;
@@ -2154,7 +2174,8 @@
       var comboN = state.combo - lineSteps;
       ev.chain.forEach(function (st, si) {
         var d0 = si * STEP_MS;
-        st.clearedCells.forEach(function (p) { addSparkles(p[0], p[1], '#FFF59D', 3, d0); });
+        addFlash(st.clearedCells, d0);
+        st.clearedCells.forEach(function (p) { addSparkles(p[0], p[1], '#FFC93C', 4, d0); });
         if (st.broke) st.broke.forEach(function (p) { addSparkles(p[0], p[1], p[2] === 'crust' ? CRUST_COLOR : SLIME_COLOR, 6, d0 + 80); });
         st.fell.forEach(function (mv) {
           fallAnim[mv[2] + ',' + mv[3]] = { fromR: mv[0], t0: t + d0 + 60, dur: 200 };
@@ -2163,7 +2184,7 @@
         if (st.clearedLines > 0) {
           comboN++;
           var mid = st.clearedCells[(st.clearedCells.length / 2) | 0];
-          addFloat(mid[0], mid[1], (comboN >= 2 ? '×' + comboN + ' ' : '') + '+' + st.gained, comboN >= 2 ? '#FF5722' : '#E91E63', d0);
+          addFloat(Math.max(0, mid[0] - si), mid[1], (comboN >= 2 ? '×' + comboN + ' ' : '') + '+' + st.gained, comboN >= 2 ? '#FF5722' : '#E91E63', d0); // 단계마다 한 칸 위로 — 숫자 겹침 방지
           if (comboN >= 2) { sfx('combo', comboN, d0 / 1000); buzz(40); } else sfx('clear', 0, d0 / 1000);
         }
       });
