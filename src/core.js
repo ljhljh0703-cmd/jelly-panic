@@ -74,7 +74,28 @@
     { goal: { type: 'rescue', n: 3 }, diffBoost: 55 },                     // 7. 구출 3
     { goal: { type: 'score', score: 1100, moves: 40 }, diffBoost: 52 },    // 8. 40수 안에 1100점
     { goal: { type: 'colors', parts: [[2, 20]] }, diffBoost: 30 },         // 9. 코딱지맛 20개 (단일 대량)
-    { goal: { type: 'colors', parts: [[0, 15], [1, 15], [2, 15]] }, diffBoost: 62 }  // 10. 3색 조합
+    { goal: { type: 'colors', parts: [[0, 15], [1, 15], [2, 15]] }, diffBoost: 62 }, // 10. 3색 조합
+    // 11~30 (10-24 추가): 같은 임무 종류를 크게. 익숙한 플레이 자동 150판 깨는 비율: 11~19 60~71%, 20~22 48~53%, 23~28 41~47%, 29·30 35%
+    { goal: { type: 'colors', parts: [[1, 15], [3, 15]] }, diffBoost: 64 },       // 11. 귀지맛 15 + 치약맛 15
+    { goal: { type: 'rescue', n: 5 }, diffBoost: 66 },                            // 12. 구출 5
+    { goal: { type: 'score', score: 1700, moves: 43 }, diffBoost: 68 },           // 13. 43수 안에 1700점
+    { goal: { type: 'colors', parts: [[4, 22]] }, diffBoost: 70 },                // 14. 가지맛 22
+    { goal: { type: 'colors', parts: [[0, 14], [2, 14], [4, 14]] }, diffBoost: 70 }, // 15. 딸기맛 14 + 코딱지맛 14 + 가지맛 14
+    { goal: { type: 'colors', parts: [[2, 17], [4, 17]] }, diffBoost: 70 },       // 16. 코딱지맛 17 + 가지맛 17
+    { goal: { type: 'rescue', n: 6 }, diffBoost: 70 },                            // 17. 구출 6
+    { goal: { type: 'score', score: 1850, moves: 48 }, diffBoost: 70 },           // 18. 48수 안에 1850점
+    { goal: { type: 'colors', parts: [[0, 25]] }, diffBoost: 70 },                // 19. 딸기맛 25
+    { goal: { type: 'colors', parts: [[1, 19], [3, 19], [0, 19]] }, diffBoost: 70 }, // 20. 귀지맛 19 + 치약맛 19 + 딸기맛 19
+    { goal: { type: 'colors', parts: [[3, 23], [0, 23]] }, diffBoost: 70 },       // 21. 치약맛 23 + 딸기맛 23
+    { goal: { type: 'rescue', n: 7 }, diffBoost: 70 },                            // 22. 구출 7
+    { goal: { type: 'score', score: 2250, moves: 53 }, diffBoost: 70 },           // 23. 53수 안에 2250점
+    { goal: { type: 'colors', parts: [[1, 27]] }, diffBoost: 70 },                // 24. 귀지맛 27
+    { goal: { type: 'colors', parts: [[2, 22], [4, 22], [1, 22]] }, diffBoost: 70 }, // 25. 코딱지맛 22 + 가지맛 22 + 귀지맛 22
+    { goal: { type: 'colors', parts: [[4, 23], [1, 23]] }, diffBoost: 70 },       // 26. 가지맛 23 + 귀지맛 23
+    { goal: { type: 'rescue', n: 8 }, diffBoost: 70 },                            // 27. 구출 8
+    { goal: { type: 'score', score: 2400, moves: 58 }, diffBoost: 70 },           // 28. 58수 안에 2400점
+    { goal: { type: 'colors', parts: [[2, 33]] }, diffBoost: 70 },                // 29. 코딱지맛 33
+    { goal: { type: 'colors', parts: [[3, 26], [0, 26], [2, 26]] }, diffBoost: 70 }  // 30. 치약맛 26 + 딸기맛 26 + 코딱지맛 26
   ];
   var WAVE_EVERY = 10; // 세션14: 디펜스 웨이브 주기 (배치 수)
 
