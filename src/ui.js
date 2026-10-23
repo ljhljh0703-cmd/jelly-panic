@@ -101,6 +101,12 @@
   function kstKey(ms) { var d = new Date((ms || Date.now()) + 9 * 3600 * 1000); return d.getUTCFullYear() + ('0' + (d.getUTCMonth() + 1)).slice(-2) + ('0' + d.getUTCDate()).slice(-2); } // 모두 같은 날 같은 판: 한국 시간 기준
   function dayLabel(key) { return (+key.slice(4, 6)) + '월 ' + (+key.slice(6, 8)) + '일'; }
   function dailyRec(key) { try { var o = JSON.parse(storeGet('cp-daily-' + key) || '{}'); return { best: typeof o.best === 'number' ? o.best : null, tries: o.tries | 0 }; } catch (e) { return { best: null, tries: 0 }; } }
+  function untilNextDaily(now) { // 한국 시간 자정까지 남은 시간
+    var ms = now || Date.now(), k = new Date(ms + 9 * 3600 * 1000);
+    var left = Math.max(0, 24 * 3600 * 1000 - ((k.getUTCHours() * 60 + k.getUTCMinutes()) * 60 + k.getUTCSeconds()) * 1000);
+    var h = Math.floor(left / 3600000), m = Math.floor((left % 3600000) / 60000);
+    return (h ? h + '시간 ' : '') + m + '분';
+  }
   function dailySave(key, rec) { storeSet('cp-daily-' + key, JSON.stringify(rec)); }
   function updateDailyChip() {
     var el = document.getElementById('dailychip');
@@ -1499,15 +1505,16 @@
     }
     document.getElementById('overcause').textContent = cause;
     // 세션7: 판 스탯 + 베스트 스코어(로컬 저장) + 신기록 배지
+    // 최고 점수는 끝없이 모드 것만 (10-24: 스테이지·오늘의 임무 점수가 끝없이 모드 최고로 들어가던 것)
     var best = parseInt(storeGet('cp-best') || '0', 10) || 0;
-    var isNew = state.score > best;
+    var isNew = state.mode === 'classic' && state.score > best;
     if (isNew) { best = state.score; storeSet('cp-best', String(best)); }
     var statsEl = document.getElementById('overstats');
-    if (statsEl) statsEl.textContent = '🐥 구출 ' + runRescued + ' · 🔥 최대 콤보 ×' + runMaxCombo + ' · 🏆 최고 ' + best;
+    if (statsEl) statsEl.textContent = '🐥 구출 ' + runRescued + ' · 🔥 최대 콤보 ×' + runMaxCombo + (state.mode === 'classic' ? ' · 🏆 최고 ' + best : '');
     var nb = document.getElementById('newbest');
     if (state.mode === 'daily') {
       var drs = dailyRec(state.dailyKey);
-      if (statsEl) statsEl.textContent = '🗓️ ' + dayLabel(state.dailyKey) + ' 내 최고 ' + (drs.best != null ? drs.best + '수' : '아직 없음') + ' · 도전 ' + drs.tries + '번';
+      if (statsEl) statsEl.textContent = '🗓️ ' + dayLabel(state.dailyKey) + ' 내 최고 ' + (drs.best != null ? drs.best + '수' : '아직 없음') + ' · 도전 ' + drs.tries + '번\n다음 임무까지 ' + untilNextDaily();
       if (nb) nb.textContent = '🏆 오늘 최고 기록!';
       if (nb && nb.classList && state.dailyNewBest) nb.classList.add('show');
     } else {
