@@ -107,13 +107,29 @@
     var h = Math.floor(left / 3600000), m = Math.floor((left % 3600000) / 60000);
     return (h ? h + '시간 ' : '') + m + '분';
   }
+  // 연속 완수(작가 결정 10-24: 연속 보상까지): 오늘의 임무를 깬 날이 하루도 안 빠지고 이어진 수. 3일마다 폭탄 1개(최대 3개 보관),
+  // 다음 끝없이·스테이지·디펜스 판 시작 때 조각 칸 하나에 넣어 준다. 오늘의 임무 판에는 넣지 않는다(모두 같은 판)
+  function prevKey(key) { var d = new Date(Date.UTC(+key.slice(0, 4), +key.slice(4, 6) - 1, +key.slice(6, 8)) - 24 * 3600 * 1000); return d.getUTCFullYear() + ('0' + (d.getUTCMonth() + 1)).slice(-2) + ('0' + d.getUTCDate()).slice(-2); }
+  function streakRec() { try { var o = JSON.parse(storeGet('cp-streak') || '{}'); return { last: typeof o.last === 'string' ? o.last : '', n: o.n | 0, bombs: Math.min(3, o.bombs | 0) }; } catch (e) { return { last: '', n: 0, bombs: 0 }; } }
+  function streakAlive(rec, today) { return rec.n > 0 && (rec.last === today || rec.last === prevKey(today)); }
+  function streakOnClear(key) { // 반환: 이번에 폭탄을 받았는지
+    var rec = streakRec();
+    if (rec.last === key) return false;
+    rec.n = rec.last === prevKey(key) ? rec.n + 1 : 1;
+    rec.last = key;
+    var got = rec.n % 3 === 0 && rec.bombs < 3;
+    if (got) rec.bombs++;
+    storeSet('cp-streak', JSON.stringify(rec));
+    return got;
+  }
   function dailySave(key, rec) { storeSet('cp-daily-' + key, JSON.stringify(rec)); }
   function updateDailyChip() {
     var el = document.getElementById('dailychip');
     if (!el || !el.style) return;
     if (currentMode === 'daily') { el.style.display = 'none'; return; }
     var dk = kstKey(), rec = dailyRec(dk);
-    el.textContent = '🗓️ 오늘의 임무 · ' + dayLabel(dk) + (rec.best != null ? ' · 내 최고 ' + rec.best + '수' : '');
+    var sk = streakRec();
+    el.textContent = '🗓️ 오늘의 임무 · ' + dayLabel(dk) + (rec.best != null ? ' · 내 최고 ' + rec.best + '수' : '') + (streakAlive(sk, dk) ? ' · 🔥' + sk.n + '일 연속' : '');
     el.style.display = '';
   }
 
@@ -124,6 +140,11 @@
       seed = state.seed;
       var dr = dailyRec(dk); dr.tries++; dailySave(dk, dr);
     } else state = C.newGame(seed, { mode: currentMode, stage: currentStage, tune: abTune() });
+    var gotBomb = false;
+    if (currentMode !== 'daily' && !/[?&]seed=\d+/.test(location.search)) { // 판 번호를 지정해 연 판(광고 녹화·재현)은 그대로
+      var skr = streakRec();
+      if (skr.bombs > 0) { skr.bombs--; storeSet('cp-streak', JSON.stringify(skr)); state.tray[0] = C.BOMB; state.trayColors[0] = null; gotBomb = true; }
+    }
     fx = []; cellPop = {}; fallAnim = {}; shakeT = 0; guide = null;
     runRescued = 0; runMaxCombo = 0;
     var nb = document.getElementById('newbest');
@@ -143,6 +164,7 @@
     drawTray();
     track.start(state, seed);
     updateDailyChip();
+    if (gotBomb) showToast('🎁 연속 완수 보상: 폭탄 1개');
     if (!firstPlaceDone) showHint();
   }
 
@@ -201,10 +223,11 @@
       ctx.beginPath(); ctx.arc(cx - s * 0.3, cy + s * 0.14, s * 0.08, 0, 7); ctx.fill();
       ctx.beginPath(); ctx.arc(cx + s * 0.3, cy + s * 0.14, s * 0.08, 0, 7); ctx.fill();
     }
-    if (opts.mark !== false) drawFlavorMark(ctx, x + GAP, y + GAP, s, color);
+    if (opts.mark !== false && showMarks) drawFlavorMark(ctx, x + GAP, y + GAP, s, color);
     ctx.restore();
   }
   // 색약 지원(10-24): 맛마다 오른쪽 위에 작은 무늬 — 색을 못 가려도 맛을 구분. 딸기 ♥ · 귀지 ▲ · 코딱지 ● · 치약 ≈ · 가지 ★
+  var showMarks = storeGet('cp-marks') !== '0'; // 맛 무늬 보기(작가 결정 10-24: 도감에서 끌 수 있게, 기본 켬)
   function drawFlavorMark(ctx, x0, y0, s, color) {
     var fi = PIECE_COLORS.indexOf(color);
     if (fi < 0 || s < 16) return;
@@ -1285,7 +1308,7 @@
   var PUBLIC_URL = 'https://ljhljh0703-cmd.github.io/jelly-panic/';
   function shareText() {
     var head = state.mode === 'daily' && state.dailyKey
-      ? '젤리 패닉 ' + dayLabel(state.dailyKey) + ' 오늘의 임무' + (state.overCause === 'clear' ? ', ' + state.placements + '수 만에 완수! 같은 판, 몇 수 만에 깰 수 있어?' : ' 도전 중. 같은 판, 너는 깰 수 있어?')
+      ? '젤리 패닉 ' + dayLabel(state.dailyKey) + ' 오늘의 임무' + (state.overCause === 'clear' ? ', ' + state.placements + '수 만에 완수!' + (function () { var sk = streakRec(); return sk.last === state.dailyKey && sk.n >= 2 ? ' (' + sk.n + '일 연속)' : ''; })() + ' 같은 판, 몇 수 만에 깰 수 있어?' : ' 도전 중. 같은 판, 너는 깰 수 있어?')
       : state.mode === 'stage' && state.stage != null
         ? '젤리 패닉 스테이지 ' + (state.stage + 1) + (state.overCause === 'clear' ? ' 깼다! (점수 ' + state.score + ')' : ' 도전 중. 같이 해 볼래?')
         : '젤리 패닉에서 ' + state.score + '점' + (runRescued ? ', 소중한 것 ' + runRescued + '번 구출' : '') + '. 내 기록 넘을 수 있어?';
@@ -1369,7 +1392,8 @@
       { icon: function (x, s) { drawMacaronCell(x, 0, 0, s, 300); }, name: '색 마카롱', desc: '원하는 젤리 위에 드롭 — 그 맛을 전부 지워요 (구출 보상)' },
       { emoji: '🔔', name: '지연 벨', desc: '판당 1번, 모든 위협을 1턴 늦춰요' },
       { emoji: '🗑️', name: '버리기 통', desc: '조각을 버려요 — 대신 위협이 1턴 다가와요' },
-      { emoji: '🎨', name: '맛 무늬', desc: '딸기 ♥ · 귀지 ▲ · 코딱지 ● · 치약 ≈ · 가지 ★ — 색이 헷갈리면 무늬로 구분해요' }
+      { emoji: '🔥', name: '연속 완수', desc: '오늘의 임무를 하루도 빼지 않고 깨면 3일마다 폭탄 1개 — 다음 끝없이·스테이지·디펜스 판에 넣어 줘요' },
+      { emoji: '🎨', name: '맛 무늬', desc: '딸기 ♥ · 귀지 ▲ · 코딱지 ● · 치약 ≈ · 가지 ★ — 색이 헷갈리면 무늬로 구분해요', toggle: true }
     ];
     entries.forEach(function (e) {
       var row = document.createElement('div');
@@ -1389,6 +1413,14 @@
       var sp = document.createElement('span'); sp.textContent = e.desc;
       txt.appendChild(b); txt.appendChild(sp);
       row.appendChild(iconEl); row.appendChild(txt);
+      if (e.toggle) {
+        var tg = document.createElement('button');
+        tg.className = 'btn marktoggle';
+        var syncTg = function () { tg.textContent = showMarks ? '켜짐' : '꺼짐'; tg.setAttribute && tg.setAttribute('aria-pressed', showMarks ? 'true' : 'false'); };
+        syncTg();
+        tg.addEventListener('click', function () { showMarks = !showMarks; storeSet('cp-marks', showMarks ? '1' : '0'); syncTg(); drawTray(); });
+        row.appendChild(tg);
+      }
       list.appendChild(row);
     });
     dex.classList.add('show');
@@ -1496,6 +1528,7 @@
     if (state.mode === 'daily') {
       var dk2 = state.dailyKey, drec = dailyRec(dk2);
       if (won && (drec.best == null || state.placements < drec.best)) { drec.best = state.placements; dailySave(dk2, drec); state.dailyNewBest = true; }
+      if (won) state.streakBomb = streakOnClear(dk2);
       if (rpD) rpD.textContent = '다시 도전';
     }
     if (won && state.mode === 'daily') {
@@ -1530,7 +1563,7 @@
     var nb = document.getElementById('newbest');
     if (state.mode === 'daily') {
       var drs = dailyRec(state.dailyKey);
-      if (statsEl) statsEl.textContent = '🗓️ ' + dayLabel(state.dailyKey) + ' 내 최고 ' + (drs.best != null ? drs.best + '수' : '아직 없음') + ' · 도전 ' + drs.tries + '번\n' + (state.dailyKey === kstKey() ? '다음 임무까지 ' + untilNextDaily() : '새 날 임무가 열렸어요');
+      if (statsEl) statsEl.textContent = '🗓️ ' + dayLabel(state.dailyKey) + ' 내 최고 ' + (drs.best != null ? drs.best + '수' : '아직 없음') + ' · 도전 ' + drs.tries + '번' + (function () { var sk = streakRec(); return streakAlive(sk, state.dailyKey) && sk.last === state.dailyKey ? '\n🔥 ' + sk.n + '일 연속 완수' + (state.streakBomb ? ' · 🎁 다음 판에 폭탄' : sk.n % 3 ? ' · 보상까지 ' + (3 - sk.n % 3) + '일' : '') : ''; })() + '\n' + (state.dailyKey === kstKey() ? '다음 임무까지 ' + untilNextDaily() : '새 날 임무가 열렸어요');
       if (nb) nb.textContent = '🏆 오늘 최고 기록!';
       if (nb && nb.classList && state.dailyNewBest) nb.classList.add('show');
     } else {
