@@ -578,6 +578,19 @@ t('T38', function () {
   ok(s.grid[peck.r] && s.grid[peck.r][peck.c] === C.EMPTY, 'T38b 발동 → 방벽 블록 파괴(자리 열림)');
 });
 
+// T40. 반반 비교 후보 규칙(tune): 기본 판에는 영향 없음, 켜면 동작
+t('T40', function () {
+  var base = C.newGame(77), same = C.newGame(77, { tune: {} });
+  ok(JSON.stringify(base.tray) === JSON.stringify(same.tray), 'T40a 빈 tune = 기본 판과 같음');
+  var q = C.newGame(78, { tune: { quietStart: 6 } }), spawned = 0;
+  for (var k = 0; k < 6 && !q.over; k++) {
+    var done = false;
+    for (var i = 0; i < 3 && !done; i++) for (var r = 0; r < C.N && !done; r++) for (var c = 0; c < C.N && !done; c++)
+      if (q.tray[i] != null && C.canPlace(q, q.tray[i], r, c)) { spawned += C.place(q, i, r, c).spawned.length; done = true; }
+  }
+  ok(spawned === 0, 'T40b quietStart 6 → 처음 6수 동안 새 위협 없음');
+});
+
 // T39. 오늘의 임무 (2026-10-24): 같은 날 = 같은 판·같은 임무, 날이 바뀌면 바뀜, 임무 달성 = 완수
 t('T39', function () {
   var a = C.daily('20261024'), b = C.daily('20261024'), c = C.daily('20261025');
@@ -602,11 +615,6 @@ t('T39', function () {
   }
   ok(!bad, 'T39f 색 임무의 맛은 서로 다른 두 맛, 범위 안');
 });
-
-console.log('\n' + pass + ' passed, ' + fail + ' failed');
-process.exit(fail > 0 ? 1 : 0);
-
-// (구분용 주석 — 세션13 T34~36은 위쪽에 유지)
 
 // T34. 임무-구출
 t('T34', function () {

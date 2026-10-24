@@ -47,7 +47,7 @@
 
   var SPAWN_EVERY = 3;   // 배치 N회마다 위협 1개 예고 (티어1 기준 — difficulty() 참조)
   var COUNTDOWN = 3;     // 예고 → 발동까지 배치 수
-  var MAX_THREATS = 4;   // 동시 위협 절대 상한 (가독성 — 위협 '수' 아닌 '조합'으로 난이도)
+  var MAX_THREATS = 4;   // 기본 모드에서 한 화면에 동시에 보이는 위협 수의 목표. 단계별 maxThreats(4단계 5)보다 나오는 간격·예고 길이가 먼저 막아 실측 최대 4. 디펜스 습격은 6까지 (10-24 주석 정정)
 
   // 난이도 커브 (세션3·4) — 배치 수 기반 고정 커브. 성과 기반 몰래 보정 아님 = Active DDA 계약 준수. 티어 핍으로 상시 노출.
   // 세션4: 위협 종류도 티어별 순차 등장(캔디크러시 방식) — 첫 10초 이해(Pillar 2)를 지키면서 뒤로 갈수록 몰아침.
@@ -74,7 +74,28 @@
     { goal: { type: 'rescue', n: 3 }, diffBoost: 55 },                     // 7. 구출 3
     { goal: { type: 'score', score: 1100, moves: 40 }, diffBoost: 52 },    // 8. 40수 안에 1100점
     { goal: { type: 'colors', parts: [[2, 20]] }, diffBoost: 30 },         // 9. 코딱지맛 20개 (단일 대량)
-    { goal: { type: 'colors', parts: [[0, 15], [1, 15], [2, 15]] }, diffBoost: 62 }  // 10. 3색 조합
+    { goal: { type: 'colors', parts: [[0, 15], [1, 15], [2, 15]] }, diffBoost: 62 }, // 10. 3색 조합
+    // 11~30 (10-24 추가): 같은 임무 종류를 크게. 익숙한 플레이 자동 150판 깨는 비율: 11~19 60~71%, 20~22 48~53%, 23~28 41~47%, 29·30 35%
+    { goal: { type: 'colors', parts: [[1, 15], [3, 15]] }, diffBoost: 64 },       // 11. 귀지맛 15 + 치약맛 15
+    { goal: { type: 'rescue', n: 5 }, diffBoost: 66 },                            // 12. 구출 5
+    { goal: { type: 'score', score: 1700, moves: 43 }, diffBoost: 68 },           // 13. 43수 안에 1700점
+    { goal: { type: 'colors', parts: [[4, 22]] }, diffBoost: 70 },                // 14. 가지맛 22
+    { goal: { type: 'colors', parts: [[0, 14], [2, 14], [4, 14]] }, diffBoost: 70 }, // 15. 딸기맛 14 + 코딱지맛 14 + 가지맛 14
+    { goal: { type: 'colors', parts: [[2, 17], [4, 17]] }, diffBoost: 70 },       // 16. 코딱지맛 17 + 가지맛 17
+    { goal: { type: 'rescue', n: 6 }, diffBoost: 70 },                            // 17. 구출 6
+    { goal: { type: 'score', score: 1850, moves: 48 }, diffBoost: 70 },           // 18. 48수 안에 1850점
+    { goal: { type: 'colors', parts: [[0, 25]] }, diffBoost: 70 },                // 19. 딸기맛 25
+    { goal: { type: 'colors', parts: [[1, 19], [3, 19], [0, 19]] }, diffBoost: 70 }, // 20. 귀지맛 19 + 치약맛 19 + 딸기맛 19
+    { goal: { type: 'colors', parts: [[3, 23], [0, 23]] }, diffBoost: 70 },       // 21. 치약맛 23 + 딸기맛 23
+    { goal: { type: 'rescue', n: 7 }, diffBoost: 70 },                            // 22. 구출 7
+    { goal: { type: 'score', score: 2250, moves: 53 }, diffBoost: 70 },           // 23. 53수 안에 2250점
+    { goal: { type: 'colors', parts: [[1, 27]] }, diffBoost: 70 },                // 24. 귀지맛 27
+    { goal: { type: 'colors', parts: [[2, 22], [4, 22], [1, 22]] }, diffBoost: 70 }, // 25. 코딱지맛 22 + 가지맛 22 + 귀지맛 22
+    { goal: { type: 'colors', parts: [[4, 23], [1, 23]] }, diffBoost: 70 },       // 26. 가지맛 23 + 귀지맛 23
+    { goal: { type: 'rescue', n: 8 }, diffBoost: 70 },                            // 27. 구출 8
+    { goal: { type: 'score', score: 2400, moves: 58 }, diffBoost: 70 },           // 28. 58수 안에 2400점
+    { goal: { type: 'colors', parts: [[2, 33]] }, diffBoost: 70 },                // 29. 코딱지맛 33
+    { goal: { type: 'colors', parts: [[3, 26], [0, 26], [2, 26]] }, diffBoost: 70 }  // 30. 치약맛 26 + 딸기맛 26 + 코딱지맛 26
   ];
   var WAVE_EVERY = 10; // 세션14: 디펜스 웨이브 주기 (배치 수)
 
@@ -120,6 +141,7 @@
       goal: dly ? dly.goal : opts.mode === 'stage' ? STAGES[Math.min(opts.stage | 0, STAGES.length - 1)].goal : null,
       diffBoost: dly ? dly.diffBoost : opts.mode === 'stage' ? STAGES[Math.min(opts.stage | 0, STAGES.length - 1)].diffBoost : (opts.mode === 'defense' ? 10 : 0),
       dailyKey: dly ? dly.key : null,
+      tune: opts.tune || {},          // 반반 비교 B 규칙 (비면 기본 규칙)
       colorCleared: [0, 0, 0, 0, 0], // 색별 파괴 누계 (임무 추적)
       totalRescued: 0,
       crowsDefused: 0,               // 디펜스 방어 카운터
@@ -175,6 +197,12 @@
     for (var i = 0; i < 3; i++) {
       state.tray.push(randInt(state, PLAYABLE));
       state.trayColors.push(randInt(state, NCOLORS));
+    }
+    // 반반 비교 후보 tune.fitTray: 세 조각 다 놓을 곳이 없으면 첫 조각을 한 칸짜리로 바꿔 '놓을 곳 없음'으로 바로 끝나는 판을 줄인다
+    if (state.tune && state.tune.fitTray && state.grid && state.grid.length) {
+      var any = false;
+      for (var t = 0; t < 3 && !any; t++) for (var r = 0; r < N && !any; r++) for (var c = 0; c < N && !any; c++) if (canPlace(state, state.tray[t], r, c)) any = true;
+      if (!any) state.tray[0] = 0;
     }
   }
 
@@ -244,7 +272,7 @@
     else if (v === SLIME) { ev.gained += 10; ev.slimeKilled = true; ev.broke.push([rr, cc, 'slime']); }
     else if (v === BABY) {
       if (state.mode === 'defense') { defuseAt(state, ev, rr, cc); return; } // 디펜스: 고정 보호 대상 — 아이템으로도 제거 불가
-      ev.gained += 100; ev.rescued++;
+      ev.gained += 100; ev.rescued++; ev.rescuedAt = [rr, cc];
     }
     else { defuseAt(state, ev, rr, cc); return; } // EMPTY: 예고만 해체
     state.grid[rr][cc] = EMPTY;
@@ -359,7 +387,7 @@
         if (cv === JELLY) { jellyBonus += 5; ev.jellyCleared++; }
         if (cv === BABY) {
           if (state.mode === 'defense') continue; // 디펜스: 줄은 지워져도 보호 대상은 영구 고정 (구출 없음)
-          step.gained += 100; ev.rescued++; // 구출!
+          step.gained += 100; ev.rescued++; ev.rescuedAt = [rr3, cc3]; // 구출!
         }
         if (cv === BLOCK && state.colorCleared && state.colors[rr3][cc3] != null) state.colorCleared[state.colors[rr3][cc3]]++; // 임무 추적
         state.grid[rr3][cc3] = EMPTY;
@@ -593,7 +621,8 @@
     // 새 위협 예고 — 과제 A(coverable 검증) + 세션4 티어별 위협 풀.
     // ⚠️ 반드시 슬라임 번짐·아기 등장 등 모든 보드 변동 이후에 실행 — 스폰 후 보드가 바뀌면 coverable 보장이 깨진다 (세션4 시뮬에서 실측된 순서 결함 수정).
     var diff = difficulty(state.placements + (state.diffBoost || 0)); // 세션13: 스테이지/디펜스 난이도 부스트
-    if (state.placements % diff.spawnEvery === 0) {
+    var quiet = state.tune && state.tune.quietStart >= state.placements; // 반반 비교 후보: 처음 N수는 새 위협 없음
+    if (state.placements % diff.spawnEvery === 0 && !quiet) {
       for (var sn = 0; sn < diff.spawnCount; sn++) {
         if (state.threats.length >= diff.maxThreats) break;
         spawnThreat(state, ev, diff);
@@ -662,7 +691,9 @@
     }
     if (pool.length === 0) return; // 스폰 보류 (과제 A 규칙)
     var pick = pool[randInt(state, pool.length)];
-    state.threats.push({ r: pick[0], c: pick[1], type: type, countdown: COUNTDOWN, _cov: true });
+    var cd = COUNTDOWN;
+    if (state.tune && state.tune.countdownEarly && diff.tier === 1) cd = state.tune.countdownEarly; // 반반 비교 후보: 1단계 예고를 더 길게
+    state.threats.push({ r: pick[0], c: pick[1], type: type, countdown: cd, _cov: true });
     ev.spawned.push([pick[0], pick[1], type]);
   }
 
