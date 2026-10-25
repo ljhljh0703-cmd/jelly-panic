@@ -1,0 +1,18 @@
+{
+  "name": "jelly-panic-toss",
+  "private": true,
+  "type": "module",
+  "description": "지켜줘! 젤리 패닉 — 앱인토스(토스 미니앱) 출시용 묶음. 게임 본체는 ../index.html 그대로 쓴다.",
+  "scripts": {
+    "bundle": "node build.mjs",
+    "build": "node build.mjs && ait build",
+    "deploy": "ait deploy",
+    "test": "node build.mjs && node test/bridge.test.mjs"
+  },
+  "dependencies": {
+    "@apps-in-toss/web-framework": "3.7.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.24.2"
+  }
+}

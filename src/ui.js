@@ -2,6 +2,9 @@
 (function () {
   'use strict';
   var C = window.CORE;
+  // 실행 환경 (10-24): 토스 미니앱 묶음(toss/)은 window.PLATFORM 을 먼저 심는다 — 저장소·뒤로가기·닫기·진동·식별키.
+  // 웹(GitHub Pages)에서는 비어 있고 브라우저 기능을 쓴다.
+  var PLATFORM = window.PLATFORM || null;
 
   // ── 색상 (쿠키/캔디 파스텔 — 오리지널). 세션4: 색이 코어 상태(NCOLORS=5)가 됨 — 마카롱 타겟팅용
   var PIECE_COLORS = ['#FF9EB5', '#FFC15E', '#9BDB8A', '#8FD4F0', '#C9A8F0'];
@@ -14,10 +17,17 @@
 
   // ── 익명 기록 (광고 성과·다시 오는 비율 보기용) ──
   // 보내는 것: 탭마다 새로 뽑는 무작위 번호(sid), 이 기기에서 처음 한 번 뽑아 기기 안에 저장해 두는 무작위 번호(did, 다음 날 다시 왔는지 세기용),
-  //   광고 꼬리표(src·ad), 판 시작·첫 수·판 끝·다시 하기·판 도중 나감과 그 판의 숫자(모드·스테이지·오늘의 판 날짜·점수·놓은 수·걸린 초), 게임 판번호(ver).
+  //   광고 꼬리표(src·ad), 판 시작·첫 수·판 끝·다시 하기·판 도중 나감·공유 단추와 그 판의 숫자(모드·스테이지·오늘의 판 날짜·점수·놓은 수·걸린 초), 게임 판번호(ver).
   // 보내지 않는 것: 이름·사진·광고 ID 같은 기기 고유 번호·쿠키·IP 주소. 사진을 등록했는지 여부도 보내지 않는다. did는 무작위 번호라 사람을 알아낼 수 없다.
   // 수집 주소(TRACK_URL)가 비어 있으면 아무것도 보내지 않는다. Do Not Track·Global Privacy Control·?notrack 이면 끄고, 그때는 did도 만들지 않는다.
   var BUILD = '20261024'; // 공개판 번호 — 반반 비교·고친 전후 비교에 쓴다
+  // 반반 비교: id 를 넣으면 B 그룹 기기(기기마다 고정)만 B 규칙으로 판을 연다. id 가 비면 두 그룹 똑같음.
+  // 내기 전에 판정 기준 한 줄을 적는다(무엇이 몇 % 오르면 계속 / 그대로면 되돌림). 기록의 ver 에 '-id' 가 붙는다.
+  // 규칙 후보(B = core tune 묶음) 말고 화면 안내 후보는 id 만 넣는다(B 는 null): 'crowline' 까마귀 → 소중한 것 선 긋기,
+  // 'firsthint' 처음 뜨는 위협 예고 칸 반짝임·손가락(기기마다 처음 세 번), 'dailyfirst' 두 번째 방문부터 오늘의 임무로 바로 시작.
+  // 눈으로 볼 때는 ?abforce=<이름> (그 탭은 기록을 보내지 않음)
+  var EXPERIMENT = { id: '', B: null };
+  var AB_FORCE = (/[?&]abforce=([a-z]{1,16})/.exec(location.search) || [])[1] || '';
   var TRACK_URL = 'https://jelly-panic-collector.vercel.app/api/collect';
   var track = (function () {
     var q = location.search || '';
@@ -25,14 +35,14 @@
     var src = pick(/[?&]src=([A-Za-z0-9_-]{1,24})/) || 'direct', ad = pick(/[?&]ad=([A-Za-z0-9_-]{1,32})/);
     var seedFromUrl = /[?&]seed=\d+/.test(q);
     var nav = window.navigator || {};
-    var off = nav.doNotTrack === '1' || nav.globalPrivacyControl === true || /[?&]notrack\b/.test(q);
+    var off = nav.doNotTrack === '1' || nav.globalPrivacyControl === true || /[?&]notrack\b/.test(q) || !!AB_FORCE;
     var sid = Math.random().toString(36).slice(2, 10), n = 0, t0 = Date.now(), queue = [], sent = [];
     var did = '';
     if (!off) {
-      try { did = (window.localStorage && localStorage.getItem('cp-did')) || ''; } catch (e) {}
+      did = storeGet('cp-did') || '';
       if (!/^[a-z0-9]{12}$/.test(did)) {
         did = (Math.random().toString(36).slice(2, 8) + Math.random().toString(36).slice(2, 8) + '000000000000').slice(0, 12);
-        try { if (window.localStorage) localStorage.setItem('cp-did', did); } catch (e) {}
+        storeSet('cp-did', did);
       }
     }
     var ab = did ? ((parseInt(did.slice(-2), 36) || 0) % 2 ? 'B' : 'A') : ''; // 반반 비교용 그룹 (기기마다 고정)
@@ -45,9 +55,10 @@
     }
     function ev(type, data) {
       if (off) return;
-      var e = { v: 2, sid: sid, did: did, ab: ab, ver: BUILD, n: n++, sec: Math.round((Date.now() - t0) / 1000), type: type, src: src, ad: ad };
+      var e = { v: 2, sid: sid, did: did, ab: ab, ver: BUILD + (EXPERIMENT.id ? '-' + EXPERIMENT.id : ''), n: n++, sec: Math.round((Date.now() - t0) / 1000), type: type, src: src, ad: ad };
       for (var k in data) if (Object.prototype.hasOwnProperty.call(data, k)) e[k] = data[k];
       queue.push(e); sent.push(e);
+      if (PLATFORM && PLATFORM.log) { var lp = {}; for (var lk in e) if (e[lk] != null && lk !== 'sid' && lk !== 'did') lp[lk] = e[lk]; PLATFORM.log('jp_' + type, lp); }
       if (queue.length >= 10 || type === 'end' || type === 'leave') flush();
     }
     if (document.addEventListener) document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') flush(); });
@@ -61,6 +72,7 @@
       move: function (st) { if (game.moved) return; game.moved = true; ev('first_move', withWhere(st, { after: Math.round((Date.now() - game.t) / 1000) })); },
       end: function (st) { ev('end', withWhere(st, { cause: st.overCause, score: st.score, placements: st.placements, rescued: runRescued, after: Math.round((Date.now() - game.t) / 1000) })); },
       restart: function (cause) { ev('restart', { prev: cause || null }); },
+      share: function (st) { ev('share', withWhere(st, { cause: st.overCause || null, score: st.score, placements: st.placements })); },
       // 판 도중 나감: 화면을 떠날 때 판이 끝나지 않았으면 한 번만 (어디서 그만두는지 보기용)
       leave: function (st) { if (game.left || !st || st.over) return; game.left = true; ev('leave', withWhere(st, { score: st.score, placements: st.placements, after: Math.round((Date.now() - game.t) / 1000) })); }
     };
@@ -82,28 +94,58 @@
   }
 
   var currentMode = 'classic', currentStage = 0; // 세션13: 모드 상태
+  function abTune() { return EXPERIMENT.id && track.ab === 'B' ? EXPERIMENT.B : null; }
+  function abUi(name) { return AB_FORCE === name || (EXPERIMENT.id === name && track.ab === 'B'); }
+  var guide = null; // 'firsthint': {r, c, type} 가리키는 위협 예고 칸
   // ── 오늘의 임무 (2026-10-24 작가 결정: 날마다 임무 하나, 도전 무제한, 최고 기록 = 가장 적은 수로 깬 기록) ──
   function kstKey(ms) { var d = new Date((ms || Date.now()) + 9 * 3600 * 1000); return d.getUTCFullYear() + ('0' + (d.getUTCMonth() + 1)).slice(-2) + ('0' + d.getUTCDate()).slice(-2); } // 모두 같은 날 같은 판: 한국 시간 기준
   function dayLabel(key) { return (+key.slice(4, 6)) + '월 ' + (+key.slice(6, 8)) + '일'; }
   function dailyRec(key) { try { var o = JSON.parse(storeGet('cp-daily-' + key) || '{}'); return { best: typeof o.best === 'number' ? o.best : null, tries: o.tries | 0 }; } catch (e) { return { best: null, tries: 0 }; } }
+  function untilNextDaily(now) { // 한국 시간 자정까지 남은 시간
+    var ms = now || Date.now(), k = new Date(ms + 9 * 3600 * 1000);
+    var left = Math.max(0, 24 * 3600 * 1000 - ((k.getUTCHours() * 60 + k.getUTCMinutes()) * 60 + k.getUTCSeconds()) * 1000);
+    var h = Math.floor(left / 3600000), m = Math.floor((left % 3600000) / 60000);
+    return (h ? h + '시간 ' : '') + m + '분';
+  }
+  // 연속 완수(작가 결정 10-24: 연속 보상까지): 오늘의 임무를 깬 날이 하루도 안 빠지고 이어진 수. 3일마다 폭탄 1개(최대 3개 보관),
+  // 다음 끝없이·스테이지·디펜스 판 시작 때 조각 칸 하나에 넣어 준다. 오늘의 임무 판에는 넣지 않는다(모두 같은 판)
+  function prevKey(key) { var d = new Date(Date.UTC(+key.slice(0, 4), +key.slice(4, 6) - 1, +key.slice(6, 8)) - 24 * 3600 * 1000); return d.getUTCFullYear() + ('0' + (d.getUTCMonth() + 1)).slice(-2) + ('0' + d.getUTCDate()).slice(-2); }
+  function streakRec() { try { var o = JSON.parse(storeGet('cp-streak') || '{}'); return { last: typeof o.last === 'string' ? o.last : '', n: o.n | 0, bombs: Math.min(3, o.bombs | 0) }; } catch (e) { return { last: '', n: 0, bombs: 0 }; } }
+  function streakAlive(rec, today) { return rec.n > 0 && (rec.last === today || rec.last === prevKey(today)); }
+  function streakOnClear(key) { // 반환: 이번에 폭탄을 받았는지
+    var rec = streakRec();
+    if (rec.last === key) return false;
+    rec.n = rec.last === prevKey(key) ? rec.n + 1 : 1;
+    rec.last = key;
+    var got = rec.n % 3 === 0 && rec.bombs < 3;
+    if (got) rec.bombs++;
+    storeSet('cp-streak', JSON.stringify(rec));
+    return got;
+  }
   function dailySave(key, rec) { storeSet('cp-daily-' + key, JSON.stringify(rec)); }
   function updateDailyChip() {
     var el = document.getElementById('dailychip');
     if (!el || !el.style) return;
     if (currentMode === 'daily') { el.style.display = 'none'; return; }
     var dk = kstKey(), rec = dailyRec(dk);
-    el.textContent = '🗓️ 오늘의 임무 · ' + dayLabel(dk) + (rec.best != null ? ' · 내 최고 ' + rec.best + '수' : '');
+    var sk = streakRec();
+    el.textContent = '🗓️ 오늘의 임무 · ' + dayLabel(dk) + (rec.best != null ? ' · 내 최고 ' + rec.best + '수' : '') + (streakAlive(sk, dk) ? ' · 🔥' + sk.n + '일 연속' : '');
     el.style.display = '';
   }
 
   function reset(seed) {
     if (currentMode === 'daily') {
       var dk = kstKey();
-      state = C.newGame(0, { mode: 'daily', daily: C.daily(dk) });
+      state = C.newGame(0, { mode: 'daily', daily: C.daily(dk) }); // 오늘의 임무는 반반 비교 규칙 후보와 상관없이 모두 같은 판
       seed = state.seed;
       var dr = dailyRec(dk); dr.tries++; dailySave(dk, dr);
-    } else state = C.newGame(seed, { mode: currentMode, stage: currentStage });
-    fx = []; cellPop = {}; fallAnim = {}; shakeT = 0;
+    } else state = C.newGame(seed, { mode: currentMode, stage: currentStage, tune: abTune() });
+    var gotBomb = false;
+    if (currentMode !== 'daily' && !/[?&]seed=\d+/.test(location.search)) { // 판 번호를 지정해 연 판(광고 녹화·재현)은 그대로
+      var skr = streakRec();
+      if (skr.bombs > 0) { skr.bombs--; storeSet('cp-streak', JSON.stringify(skr)); state.tray[0] = C.BOMB; state.trayColors[0] = null; gotBomb = true; }
+    }
+    fx = []; cellPop = {}; fallAnim = {}; shakeT = 0; guide = null;
     runRescued = 0; runMaxCombo = 0;
     var nb = document.getElementById('newbest');
     if (nb && nb.classList) nb.classList.remove('show');
@@ -122,6 +164,7 @@
     drawTray();
     track.start(state, seed);
     updateDailyChip();
+    if (gotBomb) showToast('🎁 연속 완수 보상: 폭탄 1개');
     if (!firstPlaceDone) showHint();
   }
 
@@ -179,6 +222,39 @@
       ctx.fillStyle = 'rgba(255,120,150,.35)';
       ctx.beginPath(); ctx.arc(cx - s * 0.3, cy + s * 0.14, s * 0.08, 0, 7); ctx.fill();
       ctx.beginPath(); ctx.arc(cx + s * 0.3, cy + s * 0.14, s * 0.08, 0, 7); ctx.fill();
+    }
+    if (opts.mark !== false && showMarks) drawFlavorMark(ctx, x + GAP, y + GAP, s, color);
+    ctx.restore();
+  }
+  // 색약 지원(10-24): 맛마다 오른쪽 위에 작은 무늬 — 색을 못 가려도 맛을 구분. 딸기 ♥ · 귀지 ▲ · 코딱지 ● · 치약 ≈ · 가지 ★
+  var showMarks = storeGet('cp-marks') !== '0'; // 맛 무늬 보기(작가 결정 10-24: 도감에서 끌 수 있게, 기본 켬)
+  function drawFlavorMark(ctx, x0, y0, s, color) {
+    var fi = PIECE_COLORS.indexOf(color);
+    if (fi < 0 || s < 16) return;
+    var m = s * 0.13, mx = x0 + s * 0.8, my = y0 + s * 0.2;
+    ctx.save();
+    ctx.fillStyle = shade(color, -85); ctx.strokeStyle = shade(color, -85); ctx.globalAlpha = 0.75;
+    ctx.lineWidth = Math.max(1.3, s * 0.05); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.beginPath();
+    if (fi === 0) { // 하트
+      ctx.moveTo(mx, my + m * 0.9);
+      ctx.bezierCurveTo(mx - m * 1.3, my, mx - m * 0.7, my - m * 1.0, mx, my - m * 0.3);
+      ctx.bezierCurveTo(mx + m * 0.7, my - m * 1.0, mx + m * 1.3, my, mx, my + m * 0.9);
+      ctx.fill();
+    } else if (fi === 1) { // 세모
+      ctx.moveTo(mx, my - m); ctx.lineTo(mx + m, my + m * 0.8); ctx.lineTo(mx - m, my + m * 0.8); ctx.closePath(); ctx.fill();
+    } else if (fi === 2) { // 동그라미
+      ctx.arc(mx, my, m * 0.85, 0, 7); ctx.fill();
+    } else if (fi === 3) { // 물결 두 줄
+      for (var w = -1; w <= 1; w += 2) {
+        ctx.moveTo(mx - m, my + w * m * 0.45);
+        ctx.quadraticCurveTo(mx - m * 0.5, my + w * m * 0.45 - m * 0.5, mx, my + w * m * 0.45);
+        ctx.quadraticCurveTo(mx + m * 0.5, my + w * m * 0.45 + m * 0.5, mx + m, my + w * m * 0.45);
+      }
+      ctx.stroke();
+    } else { // 별
+      for (var k = 0; k < 10; k++) { var rr = k % 2 ? m * 0.45 : m * 1.05, an = -Math.PI / 2 + k * Math.PI / 5; ctx[k ? 'lineTo' : 'moveTo'](mx + Math.cos(an) * rr, my + Math.sin(an) * rr); }
+      ctx.closePath(); ctx.fill();
     }
     ctx.restore();
   }
@@ -480,6 +556,57 @@
   }
 
   // ── 보드 그리기 ──
+  // 반반 비교 'crowline': 까마귀 예고 칸에서 노리는 소중한 것까지 점선 + 「이 칸을 덮어요」
+  function drawCrowLines(t) {
+    var pulse = 0.55 + 0.45 * Math.sin(t / 160);
+    for (var i = 0; i < state.threats.length; i++) {
+      var th = state.threats[i];
+      if (th.type !== 'crow') continue;
+      var cx = PAD + th.c * CS + CS / 2, cy = PAD + th.r * CS + CS / 2;
+      bctx.save();
+      for (var dr = -1; dr <= 1; dr++) for (var dc = -1; dc <= 1; dc++) {
+        var br = th.r + dr, bc = th.c + dc;
+        if ((dr || dc) && br >= 0 && bc >= 0 && br < C.N && bc < C.N && state.grid[br][bc] === C.BABY) {
+          bctx.strokeStyle = 'rgba(214,40,57,' + (0.5 + 0.4 * pulse) + ')'; bctx.lineWidth = 3; bctx.lineCap = 'round';
+          if (bctx.setLineDash) bctx.setLineDash([5, 5]);
+          bctx.beginPath(); bctx.moveTo(cx, cy); bctx.lineTo(PAD + bc * CS + CS / 2, PAD + br * CS + CS / 2); bctx.stroke();
+        }
+      }
+      if (bctx.setLineDash) bctx.setLineDash([]);
+      var s = CS - GAP * 2;
+      rrect(bctx, PAD + th.c * CS + GAP - 2, PAD + th.r * CS + GAP - 2, s + 4, s + 4, s * 0.3);
+      bctx.strokeStyle = 'rgba(214,40,57,' + (0.45 + 0.5 * pulse) + ')'; bctx.lineWidth = 3; bctx.stroke();
+      pillLabel('이 칸을 덮어요', cx, PAD + th.r * CS, th.r === 0 ? (th.c < C.N / 2 ? 'right' : 'left') : null);
+      bctx.restore();
+    }
+  }
+  // 반반 비교 'firsthint': 처음 뜬 위협 예고 칸을 반짝이고 손가락으로 가리킴
+  function drawGuide(t) {
+    var still = state.threats.some(function (th) { return th.r === guide.r && th.c === guide.c && th.type === guide.type; });
+    if (!still) { guide = null; return; }
+    var x = PAD + guide.c * CS, y = PAD + guide.r * CS, s = CS - GAP * 2, pulse = 0.5 + 0.5 * Math.sin(t / 150);
+    bctx.save();
+    rrect(bctx, x + GAP - 3, y + GAP - 3, s + 6, s + 6, s * 0.32);
+    bctx.strokeStyle = 'rgba(255,193,7,' + (0.55 + 0.45 * pulse) + ')'; bctx.lineWidth = 4; bctx.stroke();
+    bctx.font = Math.round(CS * 0.62) + 'px sans-serif'; bctx.textAlign = 'center'; bctx.textBaseline = 'middle';
+    var below = guide.r < C.N - 1, fy = below ? y + CS + CS * 0.35 + pulse * 5 : y - CS * 0.35 - pulse * 5;
+    bctx.fillText(below ? '👆' : '👇', x + CS / 2 + CS * 0.12, fy);
+    pillLabel('젤리로 덮으면 막아요', x + CS / 2, y, guide.r === 0 ? 'under' : null);
+    bctx.restore();
+  }
+  // where: null = 칸 위, 'under' = 칸 아래, 'right'/'left' = 같은 줄 옆(맨 윗줄에서 아래 칸을 가리지 않게)
+  function pillLabel(text, cx, cellTop, where) {
+    var fs = Math.max(11, Math.round(CS * 0.3));
+    bctx.font = '700 ' + fs + 'px sans-serif';
+    var w = bctx.measureText(text).width + fs * 1.1, h = fs * 1.7, side = CS * C.N + PAD * 2;
+    var lx = where === 'right' ? cx + CS / 2 + 2 : where === 'left' ? cx - CS / 2 - 2 - w : cx - w / 2;
+    lx = Math.max(4, Math.min(side - w - 4, lx));
+    var ly = where === 'under' ? cellTop + CS + 2 : where ? cellTop + (CS - h) / 2 : cellTop - h - 2;
+    rrect(bctx, lx, ly, w, h, h / 2); bctx.fillStyle = 'rgba(40,24,30,.86)'; bctx.fill();
+    bctx.fillStyle = '#FFF'; bctx.textAlign = 'center'; bctx.textBaseline = 'middle';
+    bctx.fillText(text, lx + w / 2, ly + h / 2 + 1);
+  }
+
   function drawBoard(t) {
     var side = CS * C.N + PAD * 2;
     bctx.clearRect(0, 0, side, side);
@@ -520,6 +647,8 @@
     }
     // 위협 예고
     for (var i = 0; i < state.threats.length; i++) drawThreat(bctx, state.threats[i], t);
+    if (abUi('crowline')) drawCrowLines(t);
+    if (guide) drawGuide(t);
     // 드래그 고스트 (배치 미리보기)
     if (drag && drag.target) {
       var tg = drag.target, valid = tg.valid;
@@ -606,8 +735,14 @@
   }
 
   // ── 로컬 저장 (세션7) — 베스트 스코어·뮤트 설정. file:// 환경 예외 대비 guard.
-  function storeGet(k) { try { return window.localStorage ? localStorage.getItem(k) : null; } catch (e) { return null; } }
-  function storeSet(k, v) { try { if (window.localStorage) localStorage.setItem(k, v); } catch (e) {} }
+  function storeGet(k) {
+    if (PLATFORM && PLATFORM.store) { try { return PLATFORM.store.get(k); } catch (e) { return null; } }
+    try { return window.localStorage ? localStorage.getItem(k) : null; } catch (e) { return null; }
+  }
+  function storeSet(k, v) {
+    if (PLATFORM && PLATFORM.store) { try { PLATFORM.store.set(k, v); } catch (e) {} return; }
+    try { if (window.localStorage) localStorage.setItem(k, v); } catch (e) {}
+  }
 
   // ── 사운드 (세션3·7) — WebAudio 합성음, 에셋 0개(단일 파일 유지). 마스터 게인 + 뮤트 토글(설정 기억).
   var AC = window.AudioContext || window.webkitAudioContext;
@@ -657,7 +792,10 @@
     else if (kind === 'blub') { tone(160, 0.12, 'sine', 0.12, d, 90); }
     else if (kind === 'discard') { tone(420, 0.14, 'sine', 0.1, d, 160); tone(140, 0.1, 'square', 0.06, d + 0.1); }
   }
-  function buzz(ms) { if (typeof navigator !== 'undefined' && navigator.vibrate) { try { navigator.vibrate(ms); } catch (e) {} } }
+  function buzz(ms) {
+    if (PLATFORM && PLATFORM.haptic) { try { PLATFORM.haptic(Array.isArray(ms) || ms >= 100 ? 'strong' : 'light'); } catch (e) {} return; }
+    if (typeof navigator !== 'undefined' && navigator.vibrate) { try { navigator.vibrate(ms); } catch (e) {} }
+  }
   // 세션8 (게임 출시 가이드): 백그라운드 전환 시 사운드 즉시 중지, 복귀 시 사용자 설정대로 재생
   if (typeof document.addEventListener === 'function') {
     document.addEventListener('visibilitychange', function () {
@@ -770,6 +908,10 @@
   }
 
   // ── FX (파티클 + 점수 플로트) — delayMs: 연쇄 단계별 시차 연출용 ──
+  // 줄 지우기 번쩍임(10-24): 지운 칸 위에 흰 빛이 잠깐 — 크림색 판 위 노란 점만으로는 지운 줄이 잘 안 보였음
+  function addFlash(cells, delayMs) {
+    fx.push({ kind: 'flash', cells: cells.slice(), t0: performance.now() + (delayMs || 0), life: 260 });
+  }
   function addSparkles(r, c, color, n, delayMs) {
     for (var i = 0; i < n; i++) {
       fx.push({
@@ -785,11 +927,27 @@
     fx.push({ kind: 'f', r: r, c: c, x: PAD + c * CS + CS / 2, y: PAD + r * CS - stack * 22, text: text, color: color, t0: t0, life: 900 });
   }
   function drawFx(t) {
+    // 번쩍임을 먼저(아래) 그리고, 반짝이·숫자를 그 위에
+    for (var pass = 0; pass < 2; pass++)
     for (var i = fx.length - 1; i >= 0; i--) {
       var f = fx[i], dt = t - f.t0;
+      if ((f.kind === 'flash') !== (pass === 0)) continue;
       if (dt < 0) continue; // 아직 시작 전(연쇄 시차)
       if (dt > f.life) { fx.splice(i, 1); continue; }
       var p = dt / f.life;
+      if (f.kind === 'flash') {
+        var fa = 1 - p;
+        bctx.save();
+        bctx.globalAlpha = 0.85 * fa;
+        bctx.fillStyle = '#FFFDF2';
+        for (var fc = 0; fc < f.cells.length; fc++) {
+          var fr = f.cells[fc][0], fcc = f.cells[fc][1], grow = (1 - fa) * CS * 0.12;
+          rrect(bctx, PAD + fcc * CS + GAP - grow, PAD + fr * CS + GAP - grow, CS - GAP * 2 + grow * 2, CS - GAP * 2 + grow * 2, CS * 0.25);
+          bctx.fill();
+        }
+        bctx.restore();
+        continue;
+      }
       if (f.kind === 'p') {
         var px = f.x + f.vx * dt / 16, py = f.y + f.vy * dt / 16 + 0.003 * dt * dt / 16;
         bctx.globalAlpha = 1 - p;
@@ -1006,11 +1164,15 @@
     ev.spawned.forEach(function (p) {
       sfx(p[2] === 'crow' || p[2] === 'peck' ? 'caw' : 'spawn');
       showOnce('th-' + p[2], TH_COPY[p[2]]);
+      if (!guide && abUi('firsthint') && p[2] !== 'crust' && p[2] !== 'peck') {
+        var fh = parseInt(storeGet('cp-fh') || '0', 10) || 0;
+        if (fh < 3) { guide = { r: p[0], c: p[1], type: p[2] }; storeSet('cp-fh', String(fh + 1)); }
+      }
       if (p[2] === 'crow') { vignetteT = 700; setMascot('worried', 1600); } // 까마귀 가시성 (세션5)
     });
     if (ev.fizzled) ev.fizzled.forEach(function (p) { addSparkles(p[0], p[1], '#C9C9C9', 5); }); // 설탕 예고 소멸 포프
     if (ev.broke) ev.broke.forEach(function (p) { addSparkles(p[0], p[1], p[2] === 'crust' ? CRUST_COLOR : SLIME_COLOR, 8); addFloat(p[0], p[1], p[2] === 'crust' ? '+15' : '+10', '#8D6E63'); });
-    if (ev.rescued > 0) { runRescued += ev.rescued; sfx('rescue'); buzz([60, 40, 80]); addFloat(3, 3, '+100', '#FF6E9C'); setMascot('cheer', 1400); }
+    if (ev.rescued > 0) { runRescued += ev.rescued; sfx('rescue'); buzz([60, 40, 80]); var ra = ev.rescuedAt || [3, 3]; addFloat(ra[0], ra[1], '+100', '#FF6E9C'); addSparkles(ra[0], ra[1], '#FF9EB5', 14); /* 구출한 자리에서 (10-24: 판 가운데 고정이던 것) */ setMascot('cheer', 1400); }
     if (state.combo > runMaxCombo) runMaxCombo = state.combo;
     if (ev.waveStart) {
       showToast(ev.waveStart + '번째 습격! 까마귀가 몰려와요' + (ev.waveBonus ? ' (버틴 보너스 +' + ev.waveBonus + ')' : ''));
@@ -1025,7 +1187,8 @@
       var comboN = state.combo - lineSteps;
       ev.chain.forEach(function (st, si) {
         var d0 = si * STEP_MS;
-        st.clearedCells.forEach(function (p) { addSparkles(p[0], p[1], '#FFF59D', 3, d0); });
+        addFlash(st.clearedCells, d0);
+        st.clearedCells.forEach(function (p) { addSparkles(p[0], p[1], '#FFC93C', 4, d0); });
         if (st.broke) st.broke.forEach(function (p) { addSparkles(p[0], p[1], p[2] === 'crust' ? CRUST_COLOR : SLIME_COLOR, 6, d0 + 80); });
         st.fell.forEach(function (mv) {
           fallAnim[mv[2] + ',' + mv[3]] = { fromR: mv[0], t0: t + d0 + 60, dur: 200 };
@@ -1034,7 +1197,7 @@
         if (st.clearedLines > 0) {
           comboN++;
           var mid = st.clearedCells[(st.clearedCells.length / 2) | 0];
-          addFloat(mid[0], mid[1], (comboN >= 2 ? '×' + comboN + ' ' : '') + '+' + st.gained, comboN >= 2 ? '#FF5722' : '#E91E63', d0);
+          addFloat(Math.max(0, mid[0] - si), mid[1], (comboN >= 2 ? '×' + comboN + ' ' : '') + '+' + st.gained, comboN >= 2 ? '#FF5722' : '#E91E63', d0); // 단계마다 한 칸 위로 — 숫자 겹침 방지
           if (comboN >= 2) { sfx('combo', comboN, d0 / 1000); buzz(40); } else sfx('clear', 0, d0 / 1000);
         }
       });
@@ -1141,15 +1304,28 @@
     x.fillText('지켜줘! 젤리 패닉 — 소중한 것을 지키는 퍼즐', W / 2, 985);
     return cv;
   }
+  // 공유 글: 결과 한 줄 + 돌아올 주소(?src=share 로 공유 타고 온 사람을 셀 수 있게)
+  var PUBLIC_URL = 'https://ljhljh0703-cmd.github.io/jelly-panic/';
+  function shareText() {
+    var head = state.mode === 'daily' && state.dailyKey
+      ? '젤리 패닉 ' + dayLabel(state.dailyKey) + ' 오늘의 임무' + (state.overCause === 'clear' ? ', ' + state.placements + '수 만에 완수!' + (function () { var sk = streakRec(); return sk.last === state.dailyKey && sk.n >= 2 ? ' (' + sk.n + '일 연속)' : ''; })() + ' 같은 판, 몇 수 만에 깰 수 있어?' : ' 도전 중. 같은 판, 너는 깰 수 있어?')
+      : state.mode === 'stage' && state.stage != null
+        ? '젤리 패닉 스테이지 ' + (state.stage + 1) + (state.overCause === 'clear' ? ' 깼다! (점수 ' + state.score + ')' : ' 도전 중. 같이 해 볼래?')
+        : '젤리 패닉에서 ' + state.score + '점' + (runRescued ? ', 소중한 것 ' + runRescued + '번 구출' : '') + '. 내 기록 넘을 수 있어?';
+    return { text: head, url: PUBLIC_URL + '?src=share' };
+  }
   var shareBtn = document.getElementById('share');
   if (shareBtn && shareBtn.addEventListener) shareBtn.addEventListener('click', function () {
+    var st = shareText();
+    track.share(state);
+    if (PLATFORM && PLATFORM.share) { PLATFORM.share(st.text); return; } // 토스: 토스 공유 시트(토스 안에서 열리는 주소를 붙임)
     var cv = buildShareCard(state.overCause !== 'baby');
     if (cv.toBlob) cv.toBlob(function (blob) {
       if (!blob) return;
       try {
         var f = new File([blob], 'jelly-panic.png', { type: 'image/png' });
         if (navigator.share && navigator.canShare && navigator.canShare({ files: [f] })) {
-          navigator.share({ files: [f], title: '지켜줘! 젤리 패닉' }).catch(function () {});
+          navigator.share({ files: [f], title: '지켜줘! 젤리 패닉', text: st.text + ' ' + st.url }).catch(function () {});
           return;
         }
       } catch (e) {}
@@ -1174,10 +1350,29 @@
   document.getElementById('restart').addEventListener('click', function () { reset((Date.now() % 1000000) | 0); });
   document.getElementById('replay').addEventListener('click', function () { track.restart(state && state.overCause); reset((Date.now() % 1000000) | 0); });
   // 종료하기 (세션12 — 작가: "다시 하기와 종료하기만"). 앱인토스 런타임에서는 플랫폼 닫기 API로 교체 예정.
+  var rankBtn = document.getElementById('rank');
+  if (rankBtn && rankBtn.addEventListener) rankBtn.addEventListener('click', function () { if (PLATFORM && PLATFORM.openRanking) PLATFORM.openRanking(); });
   var quitEl = document.getElementById('quit');
+  // 토스: 나가기 전에 확인 창(검수표 「종료 확인」). 상단 X는 토스가 자체 확인 창을 띄운다
+  function askExit() { var ea = document.getElementById('exitask'); if (ea && ea.classList) ea.classList.add('show'); }
+  function closeExitAsk() { var ea = document.getElementById('exitask'); if (ea && ea.classList) ea.classList.remove('show'); }
+  var exitGoEl = document.getElementById('exitgo'), exitStayEl = document.getElementById('exitstay');
+  if (exitGoEl && exitGoEl.addEventListener) exitGoEl.addEventListener('click', function () { closeExitAsk(); if (PLATFORM && PLATFORM.exit) PLATFORM.exit(); });
+  if (exitStayEl && exitStayEl.addEventListener) exitStayEl.addEventListener('click', closeExitAsk);
   if (quitEl && quitEl.addEventListener) quitEl.addEventListener('click', function () {
+    if (PLATFORM && PLATFORM.exit) { askExit(); return; }
     try { window.close(); } catch (e) {}
     setTimeout(function () { showToast('탭을 닫으면 종료돼요'); }, 250);
+  });
+
+  // 안드로이드 뒤로가기(토스 미니앱): 열린 창(종료 확인·도감·모드)을 먼저 닫고, 없으면 종료 확인 창
+  if (PLATFORM && PLATFORM.onBack) PLATFORM.onBack(function () {
+    var ids = ['exitask', 'dex', 'modes'];
+    for (var bi = 0; bi < ids.length; bi++) {
+      var be = document.getElementById(ids[bi]);
+      if (be && be.classList && be.classList.contains('show')) { be.classList.remove('show'); return; }
+    }
+    askExit();
   });
 
   // ── 세션12: 도감 (❓) — 위협·아이템 효과 팝업. 닫기 버튼 좌측 규칙(Toss 다이얼로그) 준수.
@@ -1196,7 +1391,9 @@
       { icon: function (x, s) { drawRocketCell(x, 0, 0, s, false); }, name: '롤링핀', desc: '가로 또는 세로 한 줄을 밀어요 (한 수 3줄+ 보상)' },
       { icon: function (x, s) { drawMacaronCell(x, 0, 0, s, 300); }, name: '색 마카롱', desc: '원하는 젤리 위에 드롭 — 그 맛을 전부 지워요 (구출 보상)' },
       { emoji: '🔔', name: '지연 벨', desc: '판당 1번, 모든 위협을 1턴 늦춰요' },
-      { emoji: '🗑️', name: '버리기 통', desc: '조각을 버려요 — 대신 위협이 1턴 다가와요' }
+      { emoji: '🗑️', name: '버리기 통', desc: '조각을 버려요 — 대신 위협이 1턴 다가와요' },
+      { emoji: '🔥', name: '연속 완수', desc: '오늘의 임무를 하루도 빼지 않고 깨면 3일마다 폭탄 1개 — 다음 끝없이·스테이지·디펜스 판에 넣어 줘요' },
+      { emoji: '🎨', name: '맛 무늬', desc: '딸기 ♥ · 귀지 ▲ · 코딱지 ● · 치약 ≈ · 가지 ★ — 색이 헷갈리면 무늬로 구분해요', toggle: true }
     ];
     entries.forEach(function (e) {
       var row = document.createElement('div');
@@ -1216,6 +1413,14 @@
       var sp = document.createElement('span'); sp.textContent = e.desc;
       txt.appendChild(b); txt.appendChild(sp);
       row.appendChild(iconEl); row.appendChild(txt);
+      if (e.toggle) {
+        var tg = document.createElement('button');
+        tg.className = 'btn marktoggle';
+        var syncTg = function () { tg.textContent = showMarks ? '켜짐' : '꺼짐'; tg.setAttribute && tg.setAttribute('aria-pressed', showMarks ? 'true' : 'false'); };
+        syncTg();
+        tg.addEventListener('click', function () { showMarks = !showMarks; storeSet('cp-marks', showMarks ? '1' : '0'); syncTg(); drawTray(); });
+        row.appendChild(tg);
+      }
       list.appendChild(row);
     });
     dex.classList.add('show');
@@ -1231,7 +1436,18 @@
     ctx.beginPath(); ctx.arc(cx + s * 0.21, cy - s * 0.1, s * 0.035, 0, 7); ctx.fill();
   }
   // ── 세션13: 모드 선택 (🎮) ──
-  function unlockedStage() { return Math.min(parseInt(storeGet('cp-stage') || '0', 10) || 0, C.STAGES.length - 1); }
+  // 스테이지 진행 = 깬 스테이지 수(cp-stages, 0~전체). 예전 저장값 cp-stage(연 스테이지 번호, 마지막에서 멈춤)는 한 번 옮긴다:
+  // 예전 판은 10스테이지라 9 = 10까지 다 깬 것으로 본다(9를 깨고 10을 연 기기도 9라 구분이 안 됨, 넉넉한 쪽으로)
+  function clearedStages() {
+    var v = storeGet('cp-stages');
+    if (v == null) {
+      var old = parseInt(storeGet('cp-stage') || '0', 10) || 0;
+      v = String(old >= 9 ? Math.max(10, old) : old);
+      storeSet('cp-stages', v);
+    }
+    return Math.max(0, Math.min(parseInt(v, 10) || 0, C.STAGES.length));
+  }
+  function unlockedStage() { return Math.min(clearedStages(), C.STAGES.length - 1); }
   function stageGoalDesc(i) { return goalDesc(C.STAGES[i].goal); }
   function goalDesc(g) {
     if (g.type === 'color') return FLAVOR_DOT[g.color] + FLAVORS[g.color] + ' 젤리 ' + g.n + '개 부수기';
@@ -1239,9 +1455,9 @@
     if (g.type === 'rescue') return '소중한 것 ' + g.n + '번 구출하기';
     return g.moves + '수 안에 ' + g.score + '점 만들기';
   }
-  function pickMode(m) {
+  function pickMode(m, stageIdx) {
     currentMode = m;
-    currentStage = (m === 'stage') ? unlockedStage() : 0;
+    currentStage = (m === 'stage') ? (stageIdx != null ? Math.min(stageIdx, unlockedStage()) : unlockedStage()) : 0;
     var mp = document.getElementById('modes');
     if (mp && mp.classList) mp.classList.remove('show');
     reset((Date.now() % 1000000) | 0);
@@ -1252,6 +1468,7 @@
   var modeBtnEl = document.getElementById('mode');
   if (modeBtnEl && modeBtnEl.addEventListener) modeBtnEl.addEventListener('click', function () {
     var mp = document.getElementById('modes'), si = document.getElementById('stageinfo');
+    var sg = document.getElementById('stagegrid'); if (sg && sg.style) sg.style.display = 'none';
     if (si) si.textContent = '스테이지 ' + (unlockedStage() + 1) + ' — ' + stageGoalDesc(unlockedStage());
     var di = document.getElementById('dailyinfo');
     if (di) { var dk = kstKey(), drc = dailyRec(dk); di.textContent = dayLabel(dk) + ' — ' + goalDesc(C.daily(dk).goal) + (drc.best != null ? ' · 내 최고 ' + drc.best + '수' : ''); }
@@ -1259,9 +1476,28 @@
   });
   var dailyChipEl = document.getElementById('dailychip');
   if (dailyChipEl && dailyChipEl.addEventListener) dailyChipEl.addEventListener('click', function () { ensureAudio(); pickMode('daily'); });
-  ['daily', 'classic', 'stage', 'defense'].forEach(function (m) {
+  ['daily', 'classic', 'defense'].forEach(function (m) {
     var el = document.getElementById('mode-' + m);
     if (el && el.addEventListener) el.addEventListener('click', function () { pickMode(m); });
+  });
+  // 스테이지 고르기(10-24, 30개로 늘면서): 스테이지 줄을 누르면 번호판이 열리고, 연 스테이지까지 골라서 다시 할 수 있다
+  var stageRowEl = document.getElementById('mode-stage');
+  if (stageRowEl && stageRowEl.addEventListener) stageRowEl.addEventListener('click', function () {
+    var grid = document.getElementById('stagegrid');
+    if (!grid || !document.createElement) { pickMode('stage'); return; }
+    if (grid.style.display !== 'none') { grid.style.display = 'none'; return; }
+    grid.innerHTML = '';
+    var un = unlockedStage(), cl = clearedStages();
+    for (var si = 0; si < C.STAGES.length; si++) (function (idx) {
+      var b = document.createElement('button');
+      b.className = 'btn stg' + (idx < cl ? ' done' : idx === un ? ' now' : ' lock');
+      b.textContent = idx < cl ? '✓' + (idx + 1) : String(idx + 1);
+      b.title = stageGoalDesc(idx);
+      if (idx <= un) b.addEventListener('click', function (ev) { ev.stopPropagation(); pickMode('stage', idx); });
+      else b.disabled = true;
+      grid.appendChild(b);
+    })(si);
+    grid.style.display = '';
   });
   var modesCloseEl = document.getElementById('modesclose');
   if (modesCloseEl && modesCloseEl.addEventListener) modesCloseEl.addEventListener('click', function () {
@@ -1279,6 +1515,9 @@
   function endGame() {
     track.end(state);
     var won = state.overCause === 'clear'; // 세션13: 임무 완수
+    if (PLATFORM && PLATFORM.submitScore && state.mode === 'classic' && state.score > 0) PLATFORM.submitScore(state.score);
+    var rankEl = document.getElementById('rank');
+    if (rankEl && rankEl.style) rankEl.style.display = PLATFORM && PLATFORM.openRanking && state.mode === 'classic' ? '' : 'none';
     var om = document.getElementById('overmascot');
     if (om && om.classList) { if (won) om.classList.add('win'); else om.classList.remove('win'); }
     if (won) { sfx('rescue'); buzz([60, 40, 80]); setMascot('cheer'); }
@@ -1289,15 +1528,15 @@
     if (state.mode === 'daily') {
       var dk2 = state.dailyKey, drec = dailyRec(dk2);
       if (won && (drec.best == null || state.placements < drec.best)) { drec.best = state.placements; dailySave(dk2, drec); state.dailyNewBest = true; }
+      if (won) state.streakBomb = streakOnClear(dk2);
       if (rpD) rpD.textContent = '다시 도전';
     }
     if (won && state.mode === 'daily') {
       cause = '오늘의 임무 완수! ' + state.placements + '수 만에';
     } else if (won) {
       cause = '스테이지 ' + (state.stage + 1) + ' 임무 완수!';
-      var unlocked = parseInt(storeGet('cp-stage') || '0', 10) || 0;
+      if (state.stage + 1 > clearedStages()) storeSet('cp-stages', String(state.stage + 1));
       var next = Math.min(state.stage + 1, C.STAGES.length - 1);
-      if (next > unlocked) storeSet('cp-stage', String(next));
       currentStage = next;
       var rp2 = document.getElementById('replay');
       if (rp2) rp2.textContent = (state.stage + 1 < C.STAGES.length) ? '다음 스테이지' : '다시 하기';
@@ -1315,15 +1554,16 @@
     }
     document.getElementById('overcause').textContent = cause;
     // 세션7: 판 스탯 + 베스트 스코어(로컬 저장) + 신기록 배지
+    // 최고 점수는 끝없이 모드 것만 (10-24: 스테이지·오늘의 임무 점수가 끝없이 모드 최고로 들어가던 것)
     var best = parseInt(storeGet('cp-best') || '0', 10) || 0;
-    var isNew = state.score > best;
+    var isNew = state.mode === 'classic' && state.score > best;
     if (isNew) { best = state.score; storeSet('cp-best', String(best)); }
     var statsEl = document.getElementById('overstats');
-    if (statsEl) statsEl.textContent = '🐥 구출 ' + runRescued + ' · 🔥 최대 콤보 ×' + runMaxCombo + ' · 🏆 최고 ' + best;
+    if (statsEl) statsEl.textContent = '🐥 구출 ' + runRescued + ' · 🔥 최대 콤보 ×' + runMaxCombo + (state.mode === 'classic' ? ' · 🏆 최고 ' + best : '');
     var nb = document.getElementById('newbest');
     if (state.mode === 'daily') {
       var drs = dailyRec(state.dailyKey);
-      if (statsEl) statsEl.textContent = '🗓️ ' + dayLabel(state.dailyKey) + ' 내 최고 ' + (drs.best != null ? drs.best + '수' : '아직 없음') + ' · 도전 ' + drs.tries + '번';
+      if (statsEl) statsEl.textContent = '🗓️ ' + dayLabel(state.dailyKey) + ' 내 최고 ' + (drs.best != null ? drs.best + '수' : '아직 없음') + ' · 도전 ' + drs.tries + '번' + (function () { var sk = streakRec(); return streakAlive(sk, state.dailyKey) && sk.last === state.dailyKey ? '\n🔥 ' + sk.n + '일 연속 완수' + (state.streakBomb ? ' · 🎁 다음 판에 폭탄' : sk.n % 3 ? ' · 보상까지 ' + (3 - sk.n % 3) + '일' : '') : ''; })() + '\n' + (state.dailyKey === kstKey() ? '다음 임무까지 ' + untilNextDaily() : '새 날 임무가 열렸어요');
       if (nb) nb.textContent = '🏆 오늘 최고 기록!';
       if (nb && nb.classList && state.dailyNewBest) nb.classList.add('show');
     } else {
@@ -1362,7 +1602,11 @@
 
   resize();
   window.addEventListener('resize', function () { resize(); drawTray(); if (!firstPlaceDone) showHint(); });
+  var revisit = !!(storeGet('cp-visited') || storeGet('cp-best')); // 전에 한 판이라도 끝낸 기기도 다시 온 것으로
+  storeSet('cp-visited', '1');
+  if (revisit && abUi('dailyfirst') && !/[?&]seed=\d+/.test(location.search) && dailyRec(kstKey()).tries === 0) currentMode = 'daily';
   reset(urlSeed());
+  if (currentMode === 'daily') showToast('오늘의 임무: ' + goalDesc(state.goal) + ' — 적은 수로 깰수록 좋아요');
   requestAnimationFrame(loop);
 
   // [RELEASE-STRIP-START] — 아래 블록은 출시 빌드에서 자동 제거됨 (개발·검증·소재 촬영 전용)
@@ -1392,8 +1636,8 @@
   if (/[?&]autochain=1/.test(location.search)) {
     setTimeout(function () {
       reset(30);
-      for (var cc = 0; cc < 7; cc++) { state.grid[7][cc] = C.BLOCK; state.grid[6][cc] = C.BLOCK; colorGrid[7][cc] = '#9BDB8A'; colorGrid[6][cc] = '#8FD4F0'; }
-      state.grid[5][7] = C.BLOCK; colorGrid[5][7] = '#FF9EB5';
+      for (var cc = 0; cc < 7; cc++) { state.grid[7][cc] = C.BLOCK; state.grid[6][cc] = C.BLOCK; state.colors[7][cc] = 2; state.colors[6][cc] = 3; } // 10-24: 없어진 colorGrid 대신 state.colors
+      state.grid[5][7] = C.BLOCK; state.colors[5][7] = 0;
       state.tray = [0, 0, 0];
       drawTray();
       setTimeout(function () { doPlace(0, 7, 7); }, 2500);
