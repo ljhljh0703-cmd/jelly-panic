@@ -57,7 +57,7 @@ node tools/analyze.js data/*.ndjson --md report.md                # 흐름·스�
 index.html        배포용 단일 파일(GitHub Pages). tools/build.js 가 만든다
 src/core.js       게임 규칙. 브라우저와 Node 시험이 같이 쓴다
 src/ui.js         화면·입력·익명 기록
-tools/            공개 파일 만들기, 기록 받기·분석
+tools/            공개 파일 만들기, 밸런스 측정(balance.js), 기록 받기·분석
 test/             규칙·화면·공정성·분석 시험 (core.js · ui.js는 src로 가는 링크)
 toss/             토스 미니앱 묶기(bridge.js = 토스 기능 연결)
 portfolio.html    작품 페이지

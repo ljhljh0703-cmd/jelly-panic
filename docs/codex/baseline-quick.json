@@ -1,0 +1,212 @@
+{
+ "at": "2026-10-25T01:09:14.459Z",
+ "quick": true,
+ "classic": {
+  "novice": {
+   "games": 60,
+   "medianMoves": 44,
+   "reach20": 83.3,
+   "reach70": 8.3,
+   "causes": {
+    "no-space": 49,
+    "baby": 11
+   }
+  },
+  "expert": {
+   "games": 60,
+   "medianMoves": 117,
+   "reach20": 100,
+   "reach70": 88.3,
+   "causes": {
+    "no-space": 59,
+    "baby": 1
+   }
+  }
+ },
+ "defense": {
+  "novice": {
+   "games": 60,
+   "medianMoves": 23,
+   "reach20": 61.7,
+   "reach70": 0,
+   "causes": {
+    "baby": 43,
+    "no-space": 17
+   }
+  },
+  "expert": {
+   "games": 60,
+   "medianMoves": 73,
+   "reach20": 98.3,
+   "reach70": 55,
+   "causes": {
+    "baby": 14,
+    "no-space": 46
+   }
+  }
+ },
+ "stages": [
+  {
+   "stage": 1,
+   "novice": 70,
+   "expert": 97.5
+  },
+  {
+   "stage": 2,
+   "novice": 77.5,
+   "expert": 100
+  },
+  {
+   "stage": 3,
+   "novice": 82.5,
+   "expert": 100
+  },
+  {
+   "stage": 4,
+   "novice": 30,
+   "expert": 90
+  },
+  {
+   "stage": 5,
+   "novice": 25,
+   "expert": 92.5
+  },
+  {
+   "stage": 6,
+   "novice": 27.5,
+   "expert": 97.5
+  },
+  {
+   "stage": 7,
+   "novice": 5,
+   "expert": 97.5
+  },
+  {
+   "stage": 8,
+   "novice": 5,
+   "expert": 95
+  },
+  {
+   "stage": 9,
+   "novice": 2.5,
+   "expert": 75
+  },
+  {
+   "stage": 10,
+   "novice": 0,
+   "expert": 70
+  },
+  {
+   "stage": 11,
+   "novice": 0,
+   "expert": 67.5
+  },
+  {
+   "stage": 12,
+   "novice": 0,
+   "expert": 72.5
+  },
+  {
+   "stage": 13,
+   "novice": 0,
+   "expert": 52.5
+  },
+  {
+   "stage": 14,
+   "novice": 2.5,
+   "expert": 67.5
+  },
+  {
+   "stage": 15,
+   "novice": 0,
+   "expert": 75
+  },
+  {
+   "stage": 16,
+   "novice": 0,
+   "expert": 70
+  },
+  {
+   "stage": 17,
+   "novice": 0,
+   "expert": 57.5
+  },
+  {
+   "stage": 18,
+   "novice": 0,
+   "expert": 57.5
+  },
+  {
+   "stage": 19,
+   "novice": 0,
+   "expert": 70
+  },
+  {
+   "stage": 20,
+   "novice": 0,
+   "expert": 60
+  },
+  {
+   "stage": 21,
+   "novice": 0,
+   "expert": 42.5
+  },
+  {
+   "stage": 22,
+   "novice": 0,
+   "expert": 47.5
+  },
+  {
+   "stage": 23,
+   "novice": 0,
+   "expert": 35
+  },
+  {
+   "stage": 24,
+   "novice": 0,
+   "expert": 37.5
+  },
+  {
+   "stage": 25,
+   "novice": 0,
+   "expert": 47.5
+  },
+  {
+   "stage": 26,
+   "novice": 0,
+   "expert": 52.5
+  },
+  {
+   "stage": 27,
+   "novice": 0,
+   "expert": 42.5
+  },
+  {
+   "stage": 28,
+   "novice": 0,
+   "expert": 40
+  },
+  {
+   "stage": 29,
+   "novice": 0,
+   "expert": 35
+  },
+  {
+   "stage": 30,
+   "novice": 0,
+   "expert": 27.5
+  }
+ ],
+ "daily": {
+  "novice": {
+   "days": 30,
+   "clear": 36.7,
+   "medianClearMoves": 27
+  },
+  "expert": {
+   "days": 30,
+   "clear": 96.7,
+   "medianClearMoves": 26
+  }
+ }
+}
