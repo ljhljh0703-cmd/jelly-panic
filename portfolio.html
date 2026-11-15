@@ -1,13 +1,14 @@
 <!DOCTYPE html>
-<!-- 지켜줘! 젤리 패닉 작품 페이지 · 첫 페이지·cofathon 페이지와 같은 콜라주 결(찢긴 종이·테이프·오린 글자·스톱모션). 글은 핵심만. 근거 = applications/_portfolio/jelly-panic/EVIDENCE-PACKET-2026-10-07.md (J01~J10 · limits) -->
+<!-- 지켜줘! 젤리 패닉 작품 페이지. 콜라주 모양은 그대로 두고 칸 순서를 작품 페이지 공통 틀로 맞춤(2026-11-15). 숫자 기준 커밋 c596554 -->
 <html lang="ko">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>재미 규칙을 먼저 정하고 500판으로 증명한 기획 · 지켜줘! 젤리 패닉 · 이주형</title>
+<title>지켜줘! 젤리 패닉: 재미 규칙을 먼저 정하고 500판으로 확인한 수읽기 퍼즐 디펜스 | 이주형</title>
 <meta name="description" content="위협은 덮을 칸이 있을 때만 생긴다는 공정성 규칙을 코드보다 먼저 정하고, 무작위 500판에서 막을 수 없는 위협 0건을 확인한 수읽기 퍼즐 디펜스. 규칙이 없던 방식이면 위협 후보 칸의 18.2%가 막을 수 없는 칸이었습니다.">
-<meta property="og:title" content="재미 규칙을 먼저 정하고 500판으로 증명한 기획 · 지켜줘! 젤리 패닉">
+<meta property="og:title" content="지켜줘! 젤리 패닉: 재미 규칙을 먼저 정하고 500판으로 확인한 수읽기 퍼즐 디펜스">
 <meta property="og:description" content="공정성 규칙을 먼저 정하고 무작위 500판으로 확인한 수읽기 퍼즐 디펜스. 막을 수 없는 위협 0건.">
+<link rel="canonical" href="https://ljhljh0703-cmd.github.io/jelly-panic/portfolio.html">
 <meta property="og:type" content="article">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -179,6 +180,82 @@
     .js .piece { opacity: 1; } .scribble path { stroke-dashoffset: 0; } .scrap, .hero-obj { transform: none; }
   }
   @media print { .grain, .scraps { display: none; } body { background: #fff; } .js .piece { opacity: 1; } }
+
+  /* ── 새 틀에 더한 모양: 작품 꼬리표, 결과 한 줄, 강조 문장, 작품 정보, 줄글, 결정 카드, 접는 칸, 표 ── */
+  .kicker { margin-bottom: 14px; font-size: 13.5px; font-weight: 700; letter-spacing: .04em; color: #c9c2b4; }
+  .kicker b { margin-right: 8px; color: var(--mint); font-weight: 800; }
+  .result { max-width: 560px; margin-top: 16px; }
+  .result strong { display: inline-block; padding: 8px 16px; font: 800 19px/1.4 "Pretendard", sans-serif; color: #fff4e8; background: url(assets/collage/paper-teal.jpg) center/200px; clip-path: polygon(0 6%, 4% 0, 97% 5%, 100% 70%, 96% 100%, 2% 94%); transform: rotate(-1deg); }
+  .result span { display: block; margin-top: 8px; font-size: 13.5px; line-height: 1.6; color: #c9c2b4; }
+  .fit { max-width: 560px; margin-top: 16px; padding: 10px 14px; border-left: 4px solid var(--mint); color: var(--cream); font-size: 15.5px; font-weight: 700; line-height: 1.6; background: rgba(238,230,214,.07); }
+  .c-full { grid-column: 1 / span 12; }
+  .c-left { grid-column: 1 / span 7; }
+  .c-right { grid-column: 8 / span 5; align-self: start; }
+  h2.tag { margin-top: 0; }
+  .sub { margin: -6px 0 14px; font-size: 13px; opacity: .72; }
+  .c-left .sub { max-width: 24em; }
+  .prose p { max-width: 46em; font-size: 16px; line-height: 1.75; }
+  .prose p + p { margin-top: 12px; }
+  .h3 { margin: 26px 0 10px; font: 800 18px/1.45 "Pretendard", sans-serif; }
+  .facts { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 14px; font-size: 14.5px; line-height: 1.55; }
+  .facts dt { font-weight: 800; color: #c0412a; }
+  .facts dd { margin: 0; font-weight: 600; }
+  .mine dd.sm { font-size: 15px; font-weight: 600; line-height: 1.6; }
+  .cards { display: grid; gap: 16px; }
+  .cards.two { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+  .card { padding: 16px 18px; color: var(--ink); background: url(assets/collage/paper-cream.jpg) center/260px; transform: rotate(var(--lr, 0deg)); }
+  .p:not(.kraft):not(.blue):not(.teal):not(.red) .card { background-image: url(assets/collage/paper-kraft.jpg); }
+  .card .k { display: block; margin-bottom: 4px; font-size: 12.5px; font-weight: 800; color: #c0412a; }
+  .card h3 { font: 800 18px/1.45 "Pretendard", sans-serif; margin-bottom: 8px; }
+  .card p { font-size: 15px; line-height: 1.7; }
+  .card p + p { margin-top: 8px; }
+  .card.long { padding: 22px 24px; }
+  .card.long .quote { margin: 4px 0 12px; }
+  .kv { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 12px; margin-top: 10px; font-size: 14.5px; line-height: 1.6; }
+  .kv dt { font-weight: 800; color: var(--teal); }
+  .kv dd { margin: 0; }
+  .folds { margin-top: 20px; }
+  .fold { border-top: 1.5px dashed rgba(27,26,23,.4); }
+  .fold:last-child { border-bottom: 1.5px dashed rgba(27,26,23,.4); }
+  .p.blue .fold, .p.teal .fold { border-color: rgba(255,244,232,.45); }
+  .fold > summary { display: flex; gap: 12px; align-items: baseline; padding: 12px 2px; cursor: pointer; list-style: none; }
+  .fold > summary::-webkit-details-marker { display: none; }
+  .fold > summary::before { content: "+"; flex: none; width: 1em; font: 800 20px/1 "Pretendard", sans-serif; color: var(--red); }
+  .p.blue .fold > summary::before, .p.teal .fold > summary::before { color: var(--neon); }
+  .fold[open] > summary::before { content: "−"; }
+  .fold > summary h3 { font: 800 17px/1.45 "Pretendard", sans-serif; }
+  .fold > summary span { display: block; margin-top: 2px; font-size: 12.5px; opacity: .72; }
+  .fold > summary:focus-visible { outline: 3px solid var(--neon); outline-offset: 2px; }
+  .fold .body { padding: 0 2px 16px 28px; font-size: 15px; line-height: 1.7; }
+  .fold .body p + p { margin-top: 8px; }
+  .steps { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; counter-reset: s; }
+  .steps li { counter-increment: s; padding: 12px 12px 14px; color: var(--ink); background: url(assets/collage/paper-cream.jpg) center/200px; }
+  .steps li::before { content: "0" counter(s); display: block; font-weight: 800; font-size: 13px; color: var(--red); }
+  .steps h3 { margin: 2px 0 6px; font: 800 15.5px/1.4 "Pretendard", sans-serif; }
+  .steps p { font-size: 13px; line-height: 1.6; }
+  .steps li.key { background-image: url(assets/collage/paper-teal.jpg); color: #fff4e8; }
+  .steps li.key::before { color: var(--neon); }
+  .lst { padding-left: 1.1em; display: grid; gap: 6px; font-size: 15.5px; line-height: 1.65; }
+  .tbl { width: 100%; border-collapse: collapse; font-size: 14px; line-height: 1.55; }
+  .tbl th, .tbl td { padding: 8px 10px 8px 0; text-align: left; vertical-align: top; border-top: 1px dashed rgba(27,26,23,.35); }
+  .p.kraft .tbl td, .p.kraft .tbl th { border-color: rgba(27,26,23,.4); }
+  .tbl th { font-size: 12.5px; font-weight: 800; border-top: 0; }
+  .tbl td:first-child { font-weight: 800; color: var(--teal); }
+  .tbl.num td:first-child { white-space: nowrap; }
+  .tbl a { color: inherit; font-weight: 800; }
+  @media (max-width: 860px) {
+    .cards.two { grid-template-columns: 1fr; }
+    .steps { grid-template-columns: 1fr; }
+    .fold .body { padding-left: 2px; }
+    .card.long { padding: 16px; }
+    .kv, .facts { grid-template-columns: 1fr; gap: 0; }
+    .kv dd, .facts dd { margin-bottom: 6px; }
+    .tbl.num td:first-child { white-space: normal; }
+    .tbl, .tbl tbody, .tbl tr, .tbl td { display: block; }
+    .tbl thead { display: none; }
+    .tbl td { border-top: 0; padding: 2px 0; }
+    .tbl tr { padding: 8px 0; border-top: 1px dashed rgba(27,26,23,.4); }
+  }
 </style>
 <script>document.documentElement.classList.add("js");</script>
 </head>
@@ -188,19 +265,22 @@
 
 <div class="top">
   <a class="back" href="../">← 작품 모음</a>
-  <span class="who">이주형 · 지켜줘! 젤리 패닉</span>
+  <span class="who">이주형, 지켜줘! 젤리 패닉</span>
 </div>
 
 <header>
   <div>
+    <p class="kicker piece" style="--rot:-1deg" data-layer="fact"><b>지켜줘! 젤리 패닉</b> 수읽기 퍼즐 디펜스 게임, 1인 개발</p>
     <h1 aria-label="재미 규칙을 먼저 정하고 500판으로 증명">
       <span class="strip piece" style="--rot:-2deg" aria-hidden="true">재미 규칙을 먼저 정하고</span><br>
       <span class="line" aria-hidden="true"><span class="ransom piece" style="--rot:3deg" data-ransom="500판"></span><span class="strip teal piece" style="--rot:-1deg">으로 증명</span></span>
     </h1>
-    <p class="lede piece" style="--rot:-1.5deg" data-claim="J01 J03 J04">막을 수 없는 위협이 나오면 퍼즐은 억울해집니다. 그래서 코드보다 먼저 「위협은 덮을 칸이 있을 때만 생긴다」는 공정성 규칙을 정했고, 무작위로 500판을 돌려 막을 수 없는 위협이 한 번도 나오지 않은 것을 확인했습니다. 규칙이 없던 이전 방식이었다면 위협이 생길 수 있는 칸의 18.2%가 막을 수 없는 칸이었습니다. 게임은 8×8 판에 조각을 놓아 줄을 지우고, 미리 보이는 위협에서 소중한 것을 지키는 수읽기 퍼즐 디펜스입니다.</p>
+    <p class="lede piece" style="--rot:-1.5deg" data-layer="narrative" data-claim="J01 J03">지켜줘! 젤리 패닉은 8×8 판에 젤리 조각을 놓아 줄을 지우고, 미리 예고된 위협 칸을 덮어 소중한 것을 지키는 브라우저 퍼즐 게임입니다. 위협은 덮을 수 있는 칸에만 생긴다는 규칙을 코드보다 먼저 정했습니다.</p>
+    <p class="result piece" style="--rot:-1deg" data-layer="fact" data-claim="J04"><strong>무작위 500판에서 막을 수 없는 위협 0건</strong> <span>2026-11-15 다시 실행. 정해진 시드, 한 판 400수까지, 사람이 둔 판은 아닙니다. 규칙이 없던 방식으로 같은 500판을 세면 위협 후보 117,908칸 가운데 21,434칸(18.2%)이 덮을 수 없는 칸입니다.</span></p>
+    <p class="fit piece" style="--rot:-1deg" data-layer="custom" data-fit="default">젤리 패닉은 위협이 생기는 조건을 코드보다 먼저 문장으로 정하고, 그 문장을 어긴 판이 나오는지 무작위 500판으로 센 게임입니다.</p>
     <div class="play piece" style="--rot:-4deg" data-claim="J10 J09">
       <a class="btn main" href="./">웹에서 바로 플레이 →</a>
-      <small>설치 없이 브라우저에서 열립니다<br>위협 5종 · 아이템 4종 · 오늘의 임무 / 클래식 / 스테이지 30개 / 디펜스</small>
+      <small>설치 없이 브라우저에서 열립니다<br>위협 5종, 아이템 4종, 모드 4개, 스테이지 30개</small>
     </div>
   </div>
   <div class="hero-obj" aria-hidden="true">
@@ -210,111 +290,251 @@
 </header>
 
 <main>
-  <section class="c-rule wrap piece" style="--tilt:-1deg;--rot:-3deg;--tr:-5deg" data-claim="J03">
+  <section class="c-left wrap piece" style="--tilt:-1deg;--rot:-3deg;--tr:-5deg" aria-labelledby="who-h" data-layer="narrative" data-claim="J02">
     <img class="tp" src="assets/collage/tape-1.png" alt="">
-    <div class="p">
-      <span class="tag">01 먼저 정한 규칙</span>
-      <p class="quote">위협이 생기는 순간, 덮을 수 있는 칸이 있어야만 생긴다.</p>
-      <p class="src">공정성 규칙 · 나머지보다 먼저 정함</p>
-      <p class="then">덮을 칸이 없으면 그 위협은 <b>아예 만들지 않습니다.</b> 막을 수 없는 판은 처음부터 나오지 않게 했습니다.</p>
-    </div>
-  </section>
-
-  <section class="c-reframe wrap piece" style="--tilt:2deg;--rot:4deg;--tr:6deg" data-claim="J07">
-    <img class="tp" src="assets/collage/tape-2.png" alt="">
     <div class="p kraft">
-      <span class="tag">02 다시 정한 문제</span>
-      <p class="x">재미를 숫자로 잰다</p>
-      <span class="arrow" aria-hidden="true">↓</span>
-      <p class="big">공정성만 기계로 재고, 재미는 직접 플레이해 보고 판단한다</p>
-      <p class="then">테스트 통과와 실제 화면 동작은 <b>따로</b> 확인했습니다.</p>
+      <h2 class="tag" id="who-h">역할 나눔</h2>
+      <p class="sub">내 몫은 규칙 정하기, 방향 판단, 검증입니다. 코드는 AI 코딩 도구 Claude로 짰습니다.</p>
+      <dl class="mine">
+        <div><dt>내가 정한 것</dt> <dd class="sm">위협이 생기는 조건(공정성 규칙), 지는 이유와 스테이지 난이도의 방향, 오늘의 임무와 보상, 2차 보강의 목표, 변경 요청을 합칠지</dd></div>
+        <div><dt>AI로 짠 것</dt> <dd class="sm">게임 규칙 코드와 화면 코드, 시험, 500판 시뮬레이션과 밸런스 측정 도구. 2026년 10월 커밋에는 Co-Authored-By: Claude 표기가 남아 있습니다.</dd></div>
+        <div><dt>내가 확인한 것</dt> <dd class="sm">무작위 500판 결과와 시험 결과, 직접 플레이한 화면과 난이도, 스토어 반려 원인을 고친 판</dd></div>
+      </dl>
     </div>
   </section>
 
-  <section class="c-out wrap piece" style="--tilt:.6deg;--rot:2deg;--tr:-2deg" data-claim="J04 J05">
+  <section class="c-right wrap piece" style="--tilt:1.5deg;--rot:3deg;--tr:5deg" aria-labelledby="info-h" data-layer="fact">
     <img class="tp" src="assets/collage/tape-2.png" alt="">
     <div class="p">
-      <span class="tag">03 실제로 나온 결과</span>
-      <span class="seal" aria-hidden="true">0건</span>
-      <ul class="outs">
-        <li class="zero" style="--lr:-.6deg"><span class="what">무작위로 둔 <em>500</em>판에서 덮을 수 없는 위협 <em>0</em>건</span><span class="why">정해진 시드 · 한 판 400수까지 · 사람이 둔 판은 아님</span></li>
-        <li style="--lr:.5deg"><span class="what">단위 테스트 <em>105</em>/105</span><span class="why">규칙 하나하나를 따로 검사</span></li>
-        <li style="--lr:-.4deg"><span class="what">화면 연결 테스트 <em>16</em>/16</span><span class="why">규칙이 화면에서도 그대로 도는지</span></li>
-        <li style="--lr:.7deg"><span class="what">같은 시드면 <em>100</em>% 재현</span><span class="why">화면 상태와 점수가 매번 같게 나옴</span></li>
-      </ul>
-      <p class="src">첫 측정 2026.07.05(당시 단위 테스트 90개) · 2026-10-24 저장소에서 다시 실행</p>
+      <h2 class="tag" id="info-h">작품 정보</h2>
+      <dl class="facts">
+        <dt>만든 사람</dt> <dd>이주형, 1인 개발</dd>
+        <dt>기간</dt> <dd>2026.07 시작, 2026.09 스토어 심사, 2026.10~11 보강. 이 페이지 숫자는 2026-11-15 커밋 c596554 기준입니다.</dd>
+        <dt>단계</dt> <dd>웹 공개 플레이. ONE store 심사는 1차 반려 뒤 고친 판 v1.0.1로 교체했고, 다른 사람의 플레이 기록은 모으는 중입니다.</dd>
+        <dt>쓴 도구</dt> <dd>JavaScript, HTML Canvas, Node, GitHub Pages, Claude</dd>
+      </dl>
     </div>
   </section>
 
-  <section class="c-plan wrap piece" style="--tilt:-.4deg;--rot:-2deg;--tr:3deg" data-claim="J03 J04 sim">
-    <img class="tp" src="assets/collage/tape-1.png" alt="">
-    <div class="p blue">
-      <span class="tag">04 기획팀에서 쓴다면</span>
-      <div class="plans">
-        <div><h3>억울한 판을 출시 전에 걸러냅니다</h3><p>스폰 규칙을 문장으로 정하고, 그 규칙을 어기는 판이 나오는지 수백 판 시뮬레이션으로 셉니다. 사람이 플레이하기 전에 불공정한 판이 몇 번 나오는지 숫자로 볼 수 있습니다.</p></div>
-        <div><h3>숫자 상한도 규칙으로 고정합니다</h3><p>기본 모드에서 한 화면의 위협이 4개를 넘지 않게 나오는 간격과 예고 길이를 맞췄고, 무작위 500판과 익숙한 플레이 150판에서 넘은 적이 없는지 확인했습니다. 까마귀가 몰려오는 디펜스 모드만 6개까지 둡니다.</p></div>
-        <div><h3>규칙이 없을 때와 비교합니다</h3><p>같은 500판을 규칙 없는 이전 방식으로 셌다면 위협 후보 칸 117,908칸 가운데 21,434칸(18.2%)이 덮을 수 없는 칸이었습니다. 규칙 하나가 무엇을 막는지 보여 줄 수 있습니다.</p></div>
-      </div>
-      <p class="src">재미 자체는 숫자로 재지 않았고, 다른 사람이 플레이한 기록은 모으기 시작했고 아직 분석 전입니다.</p>
-    </div>
-  </section>
-
-  <section class="c-plan wrap piece" style="--tilt:.8deg;--rot:2deg;--tr:-3deg" data-claim="review-1023">
-    <img class="tp" src="assets/collage/tape-2.png" alt="">
-    <div class="p">
-      <span class="tag">05 직접 돌려 보고 고친 것</span>
-      <div class="plans">
-        <div><h3>질 때 문구가 틀렸습니다</h3><p>판이 꽉 차서 졌는데도 「예고된 칸을 비우지 못했어요 (구멍 0개)」가 떴습니다. 한 수 앞만 보는 자동 플레이 300판 중 36%가 이 문구를 봤습니다. 지금은 「놓을 자리가 없어요」와 놓친 위협이 남긴 칸 수를 보여 줍니다.</p></div>
-        <div><h3>지는 이유를 위협 쪽으로 옮겼습니다</h3><p>내 조각을 굳히는 설탕이 판마다 15.4번 터져 판을 막고 있었습니다. 설탕 비중을 줄이고 균열 비중을 올려 5.8번으로 줄였고, 진 판에 남은 구멍은 1칸에서 2칸이 됐습니다. 자동 플레이 250판으로 비교했습니다.</p></div>
-        <div><h3>스테이지를 오르막으로 다시 놓았습니다</h3><p>7번째 스테이지만 깨는 비율이 47%로 떨어졌다가 8·9번에서 82%, 92%로 다시 올랐습니다. 임무 순서와 크기를 바꾸고 20개를 더해, 30개가 99%에서 35%까지 대체로 내려가게 맞췄습니다.</p></div>
-        <div><h3>다시 오는지 셀 수 있게 했습니다</h3><p>날마다 모두 같은 판을 받는 오늘의 임무를 넣었습니다. 다음 날 다시 왔는지, 판 도중 어디서 그만두는지 기록하고 두 그룹으로 나눠 비교할 수 있게 했습니다.</p></div>
-      </div>
-      <p class="src">숫자는 사람이 아닌 자동 플레이로 잰 것입니다 · 2026.10.23~24</p>
-    </div>
-  </section>
-
-  <section class="c-store wrap piece" style="--tilt:-1.5deg;--rot:-2deg;--tr:-3deg" data-claim="J08">
+  <section class="c-full wrap piece" id="demo" style="--tilt:.5deg;--rot:2deg;--tr:-3deg" aria-labelledby="demo-h" data-layer="narrative" data-claim="J10">
     <img class="tp" src="assets/collage/tape-1.png" alt="">
     <div class="p teal">
-      <span class="tag">06 스토어에서 배운 것</span>
-      <p class="quote">닫는 코드가 있다는 것과 실제로 닫힌다는 것은 다르다.</p>
-      <p class="src">ONE store 심사 1차 반려 사유 · 게임오버 뒤 「종료하기」를 눌러도 앱이 안 닫힘 · 2026.09</p>
-      <p class="then">→ 고친 판 <b>v1.0.1</b>로 바꿔 다시 냈습니다.</p>
-    </div>
-  </section>
-
-  <section class="c-who wrap piece" style="--tilt:1.5deg;--rot:3deg;--tr:5deg" data-claim="J02 J06">
-    <img class="tp" src="assets/collage/tape-2.png" alt="">
-    <div class="p kraft">
-      <span class="tag">07 누가 무엇을</span>
-      <dl class="mine">
-        <div><dt>내가 정한 것</dt><dd>공정성 규칙, 검증 기준, 플레이 피드백</dd></div>
-        <div><dt>AI로 짠 것</dt><dd>게임 코드(HTML 한 장)</dd></div>
-        <div><dt>내가 확인한 것</dt><dd>무작위 500판 시뮬레이션, 테스트 121개, 스토어 반려 원인 수정, 화면과 밸런스 검토</dd></div>
-      </dl>
-      <ul class="how">
-        <li><b>코드</b>AI 코딩 도구로 작성</li>
-        <li><b>반복</b>직접 플레이하고 고칠 점을 적어 다시 맡기기를 10번 이상, 사흘 정도</li>
-      </ul>
-      <div class="turns">
-        <p class="turns-h">플레이하며 바꾼 두 가지</p>
-        <ol>
-          <li><span class="t-was">테스트는 다 통과했는데 실제 브라우저에서 화면이 멈춤</span><b class="t-new">원인을 고치고, 같은 문제를 잡는 화면 연결 테스트 추가</b></li>
-          <li><span class="t-was">다시 플레이하며 고칠 점을 적어 넘김</span><b class="t-new">도감 같은 기능 추가, 이때 지금의 세 모드가 생김</b></li>
-        </ol>
+      <h2 class="tag" id="demo-h">시연</h2>
+      <div class="prose">
+        <p>젤리 패닉은 <a class="btn" href="./">웹에서 바로 플레이</a> 주소에서 설치와 로그인 없이 열립니다. 주소 끝에 <code>?seed=7</code>을 붙이면 같은 판이 다시 나옵니다.</p>
+        <p>첫 판에서 볼 것은 판 위에 미리 뜨는 위협 칸과 남은 수입니다. 손에 든 조각으로 그 칸을 덮으면 위협이 사라집니다.</p>
       </div>
-      <div class="chips"><span class="chip" style="--cr:-2deg">외부 라이브러리 0</span><span class="chip" style="--cr:1.5deg">HTML 한 장 157KB</span></div>
     </div>
   </section>
 
-  <section class="c-unk piece" style="--rot:3deg" data-claim="limits">
-    <div class="note">
-      <span class="tag">08 아직 모르는 것</span>
-      <ul>
-        <li>다른 사람이 플레이한 기록은 모으기 시작했고 아직 분석 전입니다</li>
-        <li>500판은 무작위로 둔 것이라 사람이 두는 수와 다릅니다</li>
-        <li>스토어 재심사 결과는 아직 확인하지 못했습니다</li>
+  <section class="c-full wrap piece" id="field" style="--tilt:-.5deg;--rot:-2deg;--tr:4deg" aria-labelledby="field-h" data-layer="narrative" data-claim="J02 J08 review-1023">
+    <img class="tp" src="assets/collage/tape-2.png" alt="">
+    <div class="p">
+      <h2 class="tag" id="field-h">현장 상황</h2>
+      <p class="sub">혼자 만들고 혼자 플레이한 게임에서 걸린 일</p>
+      <div class="prose">
+        <p>지켜줘! 젤리 패닉은 2026년 7월에 혼자 시작한 게임이고 처음에는 플레이하는 사람도 저 혼자였습니다. 첫 판을 만드는 사흘 정도 동안 직접 플레이하고 고칠 점을 적어 AI에 넘기기를 10번 이상 했습니다.</p>
+        <p>플레이하면서 걸린 일은 세 가지입니다. 첫 프로토타입은 빈 칸 가운데 아무 칸에나 위협을 예고해서, 손에 든 조각으로 덮을 수 없는 칸이 나왔습니다. 2026년 10월에는 판이 꽉 차서 졌는데 화면에 "예고된 칸을 비우지 못했어요 (구멍 0개)"가 떴습니다. 2026년 9월 ONE store 심사에서는 게임이 끝난 뒤 종료하기를 눌러도 앱이 닫히지 않아 반려됐습니다.</p>
+        <p>억울하게 진 판을 알려 줄 다른 플레이어가 없었기 때문에, 지는 조건을 문장으로 적고 그 문장을 어긴 판을 자동 플레이로 세는 방식을 골랐습니다. 다른 사람의 플레이 기록은 2026-10-22부터 익명으로 모으기 시작했습니다.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="c-full wrap piece" id="decided" style="--tilt:.3deg;--rot:2deg;--tr:-2deg" aria-labelledby="decided-h" data-layer="narrative" data-claim="J03 J04 J07">
+    <img class="tp" src="assets/collage/tape-1.png" alt="">
+    <div class="p">
+      <h2 class="tag" id="decided-h">정한 것과 버린 것</h2>
+      <p class="sub">코드 주석, 커밋 기록, 지시 문서에 남은 일곱 건. 세 건은 펼쳐 두고 네 건은 접었습니다</p>
+      <div class="cards">
+        <article class="card long"><span class="k">첫 판의 둘째 작업 묶음, 2026.07</span>
+          <h3>위협은 덮을 수 있는 칸에만 예고합니다</h3>
+          <p class="quote">위협이 생기는 순간, 덮을 수 있는 칸이 있어야만 생긴다.</p>
+          <p>젤리 패닉의 위협은 빈 칸 하나를 노리고 몇 수 뒤에 터집니다. 손에 든 조각 세 개 가운데 어느 것으로도 그 칸을 덮을 수 없으면 플레이어는 예고를 보고도 막지 못합니다. 위에 적은 문장은 이 경우를 없애려고 다른 규칙보다 먼저 정한 공정성 규칙입니다.</p>
+          <p>코드에서는 함수 하나(<code>canCoverCell</code>)가 규칙을 맡습니다. 위협을 놓을 칸을 고를 때 빈 칸마다 손에 든 조각을 놓을 수 있는 모든 위치에 대 보고 덮을 수 있는 칸만 후보로 남깁니다. 후보가 하나도 없으면 그 차례에는 위협을 만들지 않습니다.</p>
+          <p>균열, 끈적 시럽, 초코 슬라임, 도둑 까마귀처럼 빈 칸을 노리는 위협 네 종류가 검사를 거칩니다. 굳은 설탕은 이미 놓은 내 조각을 굳히는 위협이어서 덮는다는 개념이 없고, 검사에서 뺐습니다.</p>
+          <p>2차 보강을 맡길 AI에게 주는 지시 문서 맨 위에도 같은 규칙을 적었습니다. 새 위협, 장애물, 보스 공격도 이 규칙을 따라야 하고, 무작위 500판에서 0건이 유지되지 않으면 변경 요청을 막습니다.</p>
+          <dl class="kv"><dt>버린 안</dt> <dd>빈 칸 가운데 아무 칸에나 위협을 예고하던 첫 프로토타입의 방식</dd>
+          <dt>이유</dt> <dd>같은 500판을 버린 방식으로 세면 위협 후보 117,908칸 가운데 21,434칸(18.2%)이 덮을 수 없는 칸이었습니다.</dd></dl>
+        </article>
+        <div class="cards two">
+          <article class="card" style="--lr:-.4deg"><span class="k">첫 판, 2026.07</span>
+            <h3>공정성은 기계로 세고 재미는 직접 플레이해서 판단합니다</h3>
+            <p>자동 플레이가 세는 것은 규칙을 어긴 판의 수, 판 길이, 스테이지를 깨는 비율입니다. 재미있는지는 제가 다시 플레이하고 고칠 점을 적어 넘기는 일로만 판단했습니다.</p>
+            <dl class="kv"><dt>버린 안</dt> <dd>재미를 숫자로 재서 통과 기준으로 삼기</dd>
+            <dt>이유</dt> <dd>시험과 시뮬레이션을 통과한 판이 재미있는 판이라는 보장이 없습니다. 시험 통과와 실제 화면 동작도 따로 확인했습니다.</dd></dl>
+          </article>
+          <article class="card" style="--lr:.4deg"><span class="k">2026-10-23 검토, 본인 결정</span>
+            <h3>지는 이유를 위협을 놓친 쪽으로 옮겼습니다</h3>
+            <p>굳은 설탕이 익숙한 자동 플레이 250판에서 판마다 15.4번 터져 내 조각을 굳히고 있었습니다. 진 판에 남은 구멍은 1칸이었습니다. 설탕 비중을 줄이고 균열 비중을 올리자 설탕은 판마다 5.8번으로 줄고 진 판의 구멍은 2칸이 됐습니다.</p>
+            <dl class="kv"><dt>버린 안</dt> <dd>설탕이 판을 막아서 지는 이전 비중</dd>
+            <dt>이유</dt> <dd>코드 주석에 남긴 결정 문장은 "위협을 놓쳐서 지게"입니다. 예고 주기는 그대로 두고 위협 종류의 비중만 바꿨습니다.</dd></dl>
+          </article>
+        </div>
+      </div>
+      <div class="folds">
+        <details class="fold"><summary><div><h3>놓은 조각이 40개를 넘으면 위협을 두 개씩 예고합니다</h3> <span>첫 판의 열두째 작업 묶음, 본인 플레이 피드백</span></div></summary>
+          <div class="body">
+            <p>위협 하나하나는 생기는 순간 덮을 수 있는 칸에만 생기지만, 한 번에 두 개가 예고되면 둘을 모두 막지 못하는 판이 나옵니다. 까마귀를 막으면 균열을 포기하는 식으로 고르게 했습니다.</p>
+            <dl class="kv"><dt>버린 안</dt> <dd>위협을 한 번에 하나씩만 예고해 전부 막을 수 있는 판</dd>
+            <dt>이유</dt> <dd>다시 플레이한 뒤 넘긴 피드백이 "선택 강제"였습니다.</dd></dl>
+          </div></details>
+        <details class="fold"><summary><div><h3>스테이지를 깨는 비율은 뒤로 갈수록 내려가게 놓았습니다</h3> <span>2026-10-23 검토와 2026-10-24 스테이지 추가</span></div></summary>
+          <div class="body">
+            <p>스테이지 7에서 깨는 비율이 16%로 떨어졌다가 8과 9에서 다시 쉬워지고 있었습니다. 임무의 순서와 크기를 바꾼 뒤 익숙한 자동 플레이 200판으로 잰 1번부터 10번의 비율은 99, 100, 100, 95, 93, 97, 91, 94, 74, 63%입니다. 다음 날 더한 11번부터 30번은 150판 기준으로 60~71%에서 35%까지 내려갑니다.</p>
+            <dl class="kv"><dt>버린 안</dt> <dd>7번에 벽이 있고 8번과 9번이 다시 쉬운 이전 순서</dd>
+            <dt>이유</dt> <dd>커밋에 남은 표현은 "오르막으로"입니다. 1번은 첫 판에서 깨기 쉽게 임무를 줄였습니다.</dd></dl>
+          </div></details>
+        <details class="fold"><summary><div><h3>오늘의 임무는 모든 기기가 같은 판을 받습니다</h3> <span>2026-10-24, 본인 결정</span></div></summary>
+          <div class="body">
+            <p>오늘의 임무는 한국 시간 날짜마다 같은 시작 판과 같은 임무를 주고, 도전 횟수에 제한이 없으며, 가장 적은 수로 깬 기록을 최고 기록으로 남깁니다. 임무 틀 여섯 개는 자동 플레이 365일에서 깨는 비율이 92~100%였습니다.</p>
+            <dl class="kv"><dt>버린 안</dt> <dd>임무 판에 기기마다 다른 보상 아이템이나 반반 비교용 규칙을 넣기</dd>
+            <dt>이유</dt> <dd>판 끝 화면과 공유 글에 날짜와 몇 수 만에 깼는지가 적힙니다. 연속으로 깬 보상인 폭탄도 임무 판에는 넣지 않고 다음 끝없이, 스테이지, 디펜스 판에 넣습니다.</dd></dl>
+          </div></details>
+        <details class="fold"><summary><div><h3>위기 연출은 메뉴를 열지 않고 한 번 누르기로 넘깁니다</h3> <span>2026-10-25 2차 보강 로드맵. 지시서만 있고 구현 전입니다</span></div></summary>
+          <div class="body">
+            <p>판이 위험해지면 소중한 것이 겁먹고 화면이 붉게 뛰며, 마스코트를 한 번 눌러 위기를 넘기는 방식으로 적었습니다.</p>
+            <dl class="kv"><dt>버린 안</dt> <dd>게이지와 카드를 고르는 메뉴형, 홍수</dd>
+            <dt>이유</dt> <dd>로드맵에 적은 기준은 "직관적인 재미"와 "메뉴를 열지 않는다"입니다.</dd></dl>
+          </div></details>
+      </div>
+    </div>
+  </section>
+
+  <section class="c-full wrap piece" id="flow" style="--tilt:-.4deg;--rot:-2deg;--tr:3deg" aria-labelledby="flow-h" data-layer="narrative" data-claim="J01 J09">
+    <img class="tp" src="assets/collage/tape-2.png" alt="">
+    <div class="p blue">
+      <h2 class="tag" id="flow-h">만든 것과 작동 순서</h2>
+      <p class="sub">조각 하나를 놓을 때 규칙 코드가 처리하는 다섯 단계</p>
+      <ol class="steps">
+        <li><h3>조각 놓기</h3> <p>손에 든 조각 세 개 가운데 하나를 판에 끌어 놓습니다. 예고된 칸을 덮으면 그 위협이 사라집니다.</p></li>
+        <li><h3>위협 발동</h3> <p>남은 위협의 수를 하나 줄이고, 0이 된 위협이 터져 구멍이나 시럽을 남깁니다.</p></li>
+        <li><h3>줄 지우기</h3> <p>가득 찬 줄을 지우고 위 칸을 떨어뜨립니다. 떨어진 뒤 다시 줄이 차면 연쇄가 됩니다.</p></li>
+        <li><h3>판 바뀜 마무리</h3> <p>초코 슬라임이 번지고 소중한 것이 등장하는 일처럼 판을 바꾸는 처리를 끝냅니다.</p></li>
+        <li class="key"><h3>새 위협 예고</h3> <p>다 바뀐 판에서 덮을 수 있는 빈 칸만 골라 다음 위협을 예고합니다.</p></li>
+      </ol>
+      <h3 class="h3">게임에 들어 있는 것</h3>
+      <ul class="lst">
+        <li>위협 5종: 균열, 끈적 시럽, 굳은 설탕, 초코 슬라임, 도둑 까마귀. 모두 터지기 전에 칸과 남은 수가 보입니다.</li>
+        <li>아이템 4종: 폭탄, 가로 롤링핀, 세로 롤링핀, 색 마카롱. 판마다 한 번 쓰는 지연 벨과 조각 버리기 통이 따로 있습니다.</li>
+        <li>모드 4개: 오늘의 임무, 끝없이, 스테이지 30개, 디펜스</li>
+        <li>한 화면에 보이는 위협은 기본 모드에서 4개까지, 까마귀가 몰려오는 디펜스 습격에서 6개까지입니다.</li>
+        <li>색이 헷갈리는 사람을 위한 맛 무늬와 흔들림을 줄인 기기 설정을 따릅니다.</li>
       </ul>
+      <h3 class="h3">플레이 기록 장치</h3>
+      <ul class="lst">
+        <li>판 시작, 첫 수, 판 끝, 도중 나감, 공유를 익명으로 수집 서버에 보냅니다. 추적 거부 설정이 켜진 브라우저에서는 보내지 않습니다.</li>
+        <li>기기를 두 그룹으로 나눠 규칙이나 화면 안내를 다르게 보여 주는 반반 비교 장치와, 다음 날 다시 온 비율과 스테이지별 통과를 뽑는 분석 도구가 있습니다.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="c-full wrap piece" id="caught" style="--tilt:.4deg;--rot:2deg;--tr:-3deg" aria-labelledby="caught-h" data-layer="narrative" data-claim="J11 J08 review-1023">
+    <img class="tp" src="assets/collage/tape-1.png" alt="">
+    <div class="p">
+      <h2 class="tag" id="caught-h">AI로 짠 코드에서 틀린 곳을 잡은 기록</h2>
+      <p class="sub">일어난 순서대로 여섯 건. 세 건은 펼쳐 두고 세 건은 접었습니다</p>
+      <div class="cards two">
+        <article class="card" style="--lr:-.4deg"><span class="k">2026.07, 첫 작업 묶음. 브라우저에서 직접 발견</span>
+          <h3>시험은 다 통과했는데 브라우저에서 화면이 멈췄습니다</h3>
+          <p>증상은 두 가지였고 원인은 하나였습니다. SVG 요소의 className은 글자가 아닌 객체여서 값을 바로 넣으면 오류가 납니다. 원인을 고친 뒤 같은 문제를 잡는 화면 연결 테스트를 넣었고 지금 16개입니다.</p></article>
+        <article class="card" style="--lr:.4deg"><span class="k">2026.07, 넷째 작업 묶음. 시뮬레이션이 발견</span>
+          <h3>예고한 뒤에 판이 바뀌어 덮을 수 없는 위협이 나왔습니다</h3>
+          <p>위협을 예고한 다음에 슬라임 번짐 같은 처리가 돌아, 방금 확인한 칸이 덮을 수 없는 칸으로 바뀌었습니다. 새 위협 예고를 판을 바꾸는 모든 처리 뒤로 옮겼고, 순서를 바꾸면 안 된다는 경고를 코드 주석에 남겼습니다.</p></article>
+        <article class="card" style="--lr:-.3deg"><span class="k">2026-10-24</span>
+          <h3>한 번도 돌지 않던 시험 7개가 있었습니다</h3>
+          <p>구출, 수 제한, 디펜스 시험 7개가 시험 파일에서 실행이 끝나는 줄 뒤에 놓여 있었습니다. 앞으로 옮겨 단위 테스트가 98개에서 105개가 됐고 모두 통과했습니다.</p></article>
+      </div>
+      <div class="folds">
+        <details class="fold"><summary><div><h3>종료하기를 눌러도 앱이 닫히지 않았습니다</h3> <span>2026.09, ONE store 심사에서 반려</span></div></summary>
+          <div class="body"><p>게임이 끝난 뒤 종료하기를 누르면 닫히는 코드는 있었지만 스토어에 낸 앱은 닫히지 않았습니다. 원인을 고친 판 v1.0.1로 교체했습니다.</p></div></details>
+        <details class="fold"><summary><div><h3>판이 꽉 차서 졌는데 예고된 칸을 비우지 못했다는 문구가 떴습니다</h3> <span>2026-10-23 검토</span></div></summary>
+          <div class="body"><p>질 때 화면이 "예고된 칸을 비우지 못했어요 (구멍 0개)"를 보여 줬습니다. 한 수 앞만 보는 자동 플레이 300판 가운데 36%가 이 문구로 끝났습니다. 지금은 "놓을 자리가 없어요"와 놓친 위협이 남긴 칸 수를 두 줄로 보여 줍니다.</p></div></details>
+        <details class="fold"><summary><div><h3>다음 날 다시 온 비율이 늘 0%로 잡히는 기기가 섞여 있었습니다</h3> <span>2026-10-24 검토에서 나온 오동작</span></div></summary>
+          <div class="body">
+            <p>기록의 마지막 날에 처음 온 기기는 다음 날이 없는데도 분모에 들어가 반반 비교를 기울이고 있었습니다. 분모에서 뺐습니다.</p>
+            <p>같은 날 고친 것은 세 가지가 더 있습니다. 스테이지와 오늘의 임무 점수가 끝없이 모드 최고 점수로 들어가던 것, 이겼을 때도 기절한 얼굴이 나오던 것, 토스 저장소가 1.5초 안에 답하지 않으면 지난 기록을 빈 값으로 덮던 것입니다.</p>
+          </div></details>
+      </div>
+    </div>
+  </section>
+
+  <section class="c-full wrap piece" id="numbers" style="--tilt:.6deg;--rot:2deg;--tr:-2deg" aria-labelledby="numbers-h" data-layer="fact" data-claim="J04 J05">
+    <img class="tp" src="assets/collage/tape-2.png" alt="">
+    <div class="p">
+      <h2 class="tag" id="numbers-h">숫자와 잰 조건</h2>
+      <span class="seal" aria-hidden="true">0건</span>
+      <p class="sub">이 페이지의 숫자는 모두 아래 숫자 대장의 값입니다</p>
+      <ul class="outs">
+        <li class="zero" style="--lr:-.6deg"><span class="what">무작위로 둔 <em>500</em>판에서 덮을 수 없는 위협 <em>0</em>건</span> <span class="why">정해진 시드, 한 판 400수까지, 사람이 둔 판은 아님</span></li>
+        <li style="--lr:.5deg"><span class="what">규칙 없던 방식이면 <em>18.2</em>%</span> <span class="why">같은 500판의 위협 후보 117,908칸 가운데 21,434칸</span></li>
+        <li style="--lr:-.4deg"><span class="what">단위 테스트 <em>105</em>개 통과</span> <span class="why">규칙 하나하나를 따로 검사</span></li>
+        <li style="--lr:.7deg"><span class="what">화면 연결 테스트 <em>16</em>개 통과</span> <span class="why">규칙이 화면에서도 그대로 도는지</span></li>
+      </ul>
+      <details class="fold" id="ledger" style="margin-top:22px"><summary><div><h3>숫자 대장</h3> <span>값 15줄, 값마다 잰 조건과 근거</span></div></summary>
+        <div class="body">
+          <table class="tbl num"><thead><tr><th>값</th><th>무엇을 잰 값인지</th><th>잰 조건과 근거</th></tr></thead><tbody>
+          <tr><td>0건</td><td>무작위 500판에서 생기는 순간 덮을 수 없던 위협</td><td>정해진 시드, 한 판 400수까지, 할 수 있는 수 가운데 무작위. node test/sim.js 500, 2026-11-15</td></tr>
+          <tr><td>21,434칸 (18.2%)</td><td>규칙 없던 방식이면 덮을 수 없었을 위협 후보 칸. 전체 117,908칸</td><td>같은 500판에서 위협이 생길 때마다 함께 센 값. 같은 실행</td></tr>
+          <tr><td>999건, 판당 2.00건</td><td>예고된 뒤에 판이 바뀌어 덮을 수 없게 된 위협</td><td>같은 500판. 지연 벨을 둔 근거로 재는 값</td></tr>
+          <tr><td>4개</td><td>무작위 500판에서 한 화면에 함께 보인 위협의 최대</td><td>같은 실행. 디펜스 습격은 6개까지</td></tr>
+          <tr><td>21수, 18수</td><td>무작위 500판의 판 길이 평균과 가운데값</td><td>같은 실행. 진 이유는 놓을 곳 없음 465판, 소중한 것을 빼앗김 35판</td></tr>
+          <tr><td>105개, 16개, 14개</td><td>통과한 단위 테스트, 화면 연결 테스트, 기록 분석 도구 시험</td><td>커밋 c596554, 2026-11-15 직접 실행. 2026.07 첫 공개 때 단위 테스트는 90개</td></tr>
+          <tr><td>15.4번 → 5.8번</td><td>판마다 굳은 설탕이 터진 횟수. 위협 비중을 바꾸기 전과 후</td><td>익숙한 자동 플레이 250판, 2026-10-23. 진 판의 구멍 1칸 → 2칸, 시럽과 설탕 칸 7칸 → 4칸</td></tr>
+          <tr><td>16%</td><td>고치기 전 스테이지 7을 깨는 비율</td><td>2026-10-23 검토. 코드 주석과 커밋 4234533</td></tr>
+          <tr><td>99% → 63%</td><td>스테이지 1번부터 10번을 깨는 비율. 순서대로 99, 100, 100, 95, 93, 97, 91, 94, 74, 63</td><td>익숙한 자동 플레이 200판, 2026-10-23</td></tr>
+          <tr><td>60~71% → 35%</td><td>스테이지 11번부터 30번을 깨는 비율</td><td>익숙한 자동 플레이 150판, 2026-10-24. 11~19번 60~71%, 20~22번 48~53%, 23~28번 41~47%, 29번과 30번 35%</td></tr>
+          <tr><td>75%, 25%, 7%, 0%</td><td>초보 자동 플레이가 스테이지 1, 4, 7, 10을 깨는 비율</td><td>절반은 좋은 수, 절반은 아무 수를 두는 자동 플레이. 2026-10-25 기준선(docs/codex/baseline.json)</td></tr>
+          <tr><td>92~100%</td><td>오늘의 임무 틀 여섯 개를 깨는 비율</td><td>자동 플레이 365일, 2026-10-24</td></tr>
+          <tr><td>36%</td><td>판이 꽉 차서 졌는데 틀린 문구를 본 판의 비율</td><td>한 수 앞만 보는 자동 플레이 300판, 2026-10-23. 2026-10-24 작품 페이지에 적은 값</td></tr>
+          <tr><td>10번 이상, 사흘 정도</td><td>첫 판을 만들며 플레이하고 고칠 점을 넘긴 횟수와 기간</td><td>2026.07, 작업 기록</td></tr>
+          <tr><td>46개, 157KB</td><td>커밋 수, 공개 파일 index.html 크기</td><td>2026-07-05부터 2026-11-15까지, 커밋 c596554. 외부 라이브러리 0</td></tr>
+          </tbody></table>
+        </div></details>
+      <p class="src">자동 플레이로 잰 값은 사람이 둔 판의 값이 아닙니다.</p>
+    </div>
+  </section>
+
+  <section class="c-full wrap piece" id="checked" style="--tilt:-.5deg;--rot:-2deg;--tr:5deg" aria-labelledby="checked-h" data-layer="narrative" data-claim="J05 J07 limits">
+    <img class="tp" src="assets/collage/tape-1.png" alt="">
+    <div class="p kraft">
+      <h2 class="tag" id="checked-h">확인한 방법과 한계</h2>
+      <p class="sub">시뮬레이션, 시험, 자동 플레이 비교, 직접 플레이</p>
+      <ul class="lst">
+        <li>500판 시뮬레이션은 위협이 생길 때마다 그 칸을 덮을 수 있는지 다시 계산하고, 규칙 없던 방식이면 뽑혔을 후보 칸도 그때마다 함께 셉니다.</li>
+        <li>같은 시드에 같은 수를 두면 같은 판이 나옵니다. 무작위는 게임 상태에 든 난수 하나로만 뽑아, 틀린 판을 다시 불러 볼 수 있습니다.</li>
+        <li>단위 테스트는 규칙을, 화면 연결 테스트는 브라우저를 흉내 낸 환경에서 화면 코드를, 분석 도구 시험은 답을 아는 가짜 기록을 검사합니다.</li>
+        <li>난이도는 초보와 익숙한 자동 플레이 두 가지로 판 길이와 스테이지를 깨는 비율을 재고, 규칙을 바꿀 때마다 2026-10-25 기준선 파일과 비교합니다.</li>
+        <li>변경 요청마다 공개 파일이 원본 코드와 같은지, 시험 세 가지, 500판 시뮬레이션, 기준선 비교를 차례로 돌립니다.</li>
+        <li>화면과 재미는 직접 플레이해서 봤습니다.</li>
+      </ul>
+      <h3 class="h3">한계</h3>
+      <ul class="lst">
+        <li>500판은 무작위로 둔 판이어서 사람이 두는 수와 다릅니다.</li>
+        <li>공정성 규칙은 위협이 생기는 순간만 검사합니다. 예고된 뒤에 판이 바뀌어 덮을 수 없게 된 위협이 500판에서 999건, 판마다 2건꼴로 있었습니다.</li>
+        <li>난이도 숫자는 모두 자동 플레이로 쟀고, 초보 자동 플레이는 스테이지 10을 한 번도 깨지 못했습니다.</li>
+        <li>다른 사람의 플레이 기록은 2026-10-22부터 모으기 시작했고 분석 전입니다. 인원과 판 수는 세지 않았습니다.</li>
+        <li>ONE store는 v1.0.1로 교체한 뒤의 재심사 결과를 확인하지 못했습니다. 토스 미니앱은 묶음만 만들었고 올리기 전 할 일 네 가지가 남아 있습니다.</li>
+        <li>2차 보강 다섯 단계는 지시서와 기준선만 있고 구현 코드는 저장소에 없습니다.</li>
+        <li>토스 연결 시험 13개는 2026-10-24에 통과한 기록이고 2026-11-15에는 다시 돌리지 않았습니다.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="c-full wrap piece" id="tech" style="--tilt:.4deg;--rot:2deg;--tr:-4deg" aria-labelledby="tech-h" data-layer="fact" data-claim="J06">
+    <img class="tp" src="assets/collage/tape-2.png" alt="">
+    <div class="p">
+      <h2 class="tag" id="tech-h">기술 정보</h2>
+      <table class="tbl"><tbody>
+      <tr><td>언어와 형태</td><td>JavaScript, 외부 라이브러리 0, HTML 한 장 157KB. 그림은 Canvas, 소리는 Web Audio 합성</td></tr>
+      <tr><td>구조</td><td>규칙 코어(src/core.js, 순수 함수, 브라우저와 Node 공용)와 화면(src/ui.js)을 나누고 빌드 스크립트가 index.html을 만듭니다.</td></tr>
+      <tr><td>무작위</td><td>시드 기반 결정론 난수(mulberry32). Math.random과 시각 값은 규칙 코드에서 쓰지 않습니다.</td></tr>
+      <tr><td>테스트와 검증</td><td>Node 단위 테스트, DOM 스텁 스모크 테스트, 몬테카를로 시뮬레이션과 반사실 대조, 밸런스 회귀 비교</td></tr>
+      <tr><td>플레이 기록</td><td>익명 이벤트 수집(Vercel 수집 서버), A/B 테스트 장치, 기록 분석 스크립트</td></tr>
+      <tr><td>배포</td><td>GitHub Pages, ONE store 심사 제출(Android), 앱인토스 웹 SDK 묶음</td></tr>
+      <tr><td>AI 코딩 도구</td><td>Claude. 2차 보강 구현은 Codex에 맡기도록 지시 문서(AGENTS.md와 단계별 지시서 5개)를 써 두었습니다.</td></tr>
+      <tr><td>저장소</td><td><a href="https://github.com/ljhljh0703-cmd/jelly-panic" target="_blank" rel="noopener noreferrer">GitHub에서 열기</a></td></tr>
+      <tr><td>숫자 기준 커밋</td><td><code>c596554</code></td></tr>
+      </tbody></table>
     </div>
   </section>
 </main>
@@ -375,7 +595,7 @@ if (!reduce) addEventListener("pointermove", e => {
 const head = [...document.querySelectorAll("header .piece")];
 head.forEach((el, i) => setTimeout(() => el.classList.add("on"), reduce ? 0 : 120 + i * 140));
 setTimeout(() => dsvg.classList.add("on"), reduce ? 0 : 300);
-const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("on"); io.unobserve(e.target); } }), { threshold: .15 });
+const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("on"); io.unobserve(e.target); } }), { threshold: .02 });
 document.querySelectorAll("main .piece").forEach(el => io.observe(el));
 </script>
 </body>
