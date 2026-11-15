@@ -256,6 +256,17 @@
     .tbl td { border-top: 0; padding: 2px 0; }
     .tbl tr { padding: 8px 0; border-top: 1px dashed rgba(27,26,23,.4); }
   }
+  header { min-height: calc(100vh - 100px); align-content: center; }
+  .first-rule { margin-top: 18px; }
+  .first-rule .quote { font-size: clamp(19px, 2.1vw, 25px); }
+  .first-rule .src { margin-top: 6px; }
+  .p .fit { max-width: 46em; color: var(--ink); border-left-color: var(--teal); background: rgba(32,120,120,.12); }
+  @media (max-width: 860px) {
+    header { padding-top: 14px; }
+    .hero-obj { width: min(150px, 40vw); margin-bottom: -6px; }
+    .kicker { margin-bottom: 8px; }
+    .play { margin-top: 16px; }
+  }
 </style>
 <script>document.documentElement.classList.add("js");</script>
 </head>
@@ -275,9 +286,11 @@
       <span class="strip piece" style="--rot:-2deg" aria-hidden="true">재미 규칙을 먼저 정하고</span><br>
       <span class="line" aria-hidden="true"><span class="ransom piece" style="--rot:3deg" data-ransom="500판"></span><span class="strip teal piece" style="--rot:-1deg">으로 증명</span></span>
     </h1>
-    <p class="lede piece" style="--rot:-1.5deg" data-layer="narrative" data-claim="J01 J03">지켜줘! 젤리 패닉은 8×8 판에 젤리 조각을 놓아 줄을 지우고, 미리 예고된 위협 칸을 덮어 소중한 것을 지키는 브라우저 퍼즐 게임입니다. 위협은 덮을 수 있는 칸에만 생긴다는 규칙을 코드보다 먼저 정했습니다.</p>
-    <p class="result piece" style="--rot:-1deg" data-layer="fact" data-claim="J04"><strong>무작위 500판에서 막을 수 없는 위협 0건</strong> <span>2026-11-15 다시 실행. 정해진 시드, 한 판 400수까지, 사람이 둔 판은 아닙니다. 규칙이 없던 방식으로 같은 500판을 세면 위협 후보 117,908칸 가운데 21,434칸(18.2%)이 덮을 수 없는 칸입니다.</span></p>
-    <p class="fit piece" style="--rot:-1deg" data-layer="custom" data-fit="default">젤리 패닉은 위협이 생기는 조건을 코드보다 먼저 문장으로 정하고, 그 문장을 어긴 판이 나오는지 무작위 500판으로 센 게임입니다.</p>
+    <figure class="lede first-rule piece" style="--rot:-1.5deg" data-layer="narrative" data-claim="J03">
+      <blockquote class="quote">위협이 생기는 순간, 덮을 수 있는 칸이 있어야만 생긴다.</blockquote>
+      <figcaption class="src">코드보다 먼저 정한 규칙 원문</figcaption>
+    </figure>
+    <p class="result piece" style="--rot:-1deg" data-layer="fact" data-claim="J04"><strong>무작위 500판에서 막을 수 없는 위협 0건</strong> <span>2026-11-15 다시 실행. 정해진 시드, 한 판 400수까지, 사람이 둔 판은 아닙니다.</span></p>
     <div class="play piece" style="--rot:-4deg" data-claim="J10 J09">
       <a class="btn main" href="./">웹에서 바로 플레이 →</a>
       <small>설치 없이 브라우저에서 열립니다<br>위협 5종, 아이템 4종, 모드 4개, 스테이지 30개</small>
@@ -290,6 +303,18 @@
 </header>
 
 <main>
+  <section class="c-full wrap piece" id="intro" style="--tilt:.4deg;--rot:2deg;--tr:-4deg" aria-labelledby="intro-h" data-layer="narrative" data-claim="J01 J03 J04">
+    <img class="tp" src="assets/collage/tape-2.png" alt="">
+    <div class="p">
+      <h2 class="tag" id="intro-h">한 줄 소개</h2>
+      <div class="prose">
+        <p>지켜줘! 젤리 패닉은 8×8 판에 젤리 조각을 놓아 줄을 지우고, 미리 예고된 위협 칸을 덮어 소중한 것을 지키는 브라우저 퍼즐 게임입니다. 위협은 덮을 수 있는 칸에만 생긴다는 규칙을 코드보다 먼저 정했습니다.</p>
+        <p>규칙이 없던 방식으로 같은 무작위 500판을 세면 위협 후보 117,908칸 가운데 21,434칸(18.2%)이 덮을 수 없는 칸입니다.</p>
+      </div>
+      <p class="fit" data-layer="custom" data-fit="default">젤리 패닉은 위협이 생기는 조건을 코드보다 먼저 문장으로 정하고, 그 문장을 어긴 판이 나오는지 무작위 500판으로 센 게임입니다.</p>
+    </div>
+  </section>
+
   <section class="c-left wrap piece" style="--tilt:-1deg;--rot:-3deg;--tr:-5deg" aria-labelledby="who-h" data-layer="narrative" data-claim="J02">
     <img class="tp" src="assets/collage/tape-1.png" alt="">
     <div class="p kraft">
